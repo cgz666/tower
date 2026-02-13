@@ -1,0 +1,65 @@
+#运维系统→资源管理→机房管理一开关电源
+INTO_DATA1={'AJAXREQUEST': '_viewRoot',
+ 'javax.faces.ViewState': 'j_id6',
+ 'queryForm': 'queryForm',
+ 'queryForm:currPageObjId': '1',
+ 'queryForm:j_id11': '',
+ 'queryForm:j_id18': '',
+ 'queryForm:j_id22': '',
+ 'queryForm:j_id26': '',
+ 'queryForm:j_id30': '',
+ 'queryForm:j_id34': '',
+ 'queryForm:j_id38': '',
+ 'queryForm:j_id42': '',
+ 'queryForm:j_id46': '',
+ 'queryForm:j_id56': '',
+ 'queryForm:j_id60': 'queryForm:j_id60',
+ 'queryForm:pageSizeText': '35',
+ 'queryForm:queryResCode': '',
+ 'queryForm:queryRoomIdHidden': '',
+ 'queryForm:querySiteSourceCode': '',
+ 'queryForm:queryStationIdHidden': '',
+ 'queryForm:querytext': '',
+ 'queryForm:querytext2': '',
+ 'queryForm:unitHidden': '0099977,0099978,0099979,0099980,0099981,0099982'}
+INTO_DATA1_5={'AJAX:EVENTS_COUNT': '1',
+ 'AJAXREQUEST': '_viewRoot',
+ 'javax.faces.ViewState': 'j_id6',
+ 'queryForm': 'queryForm',
+ 'queryForm:currPageObjId': '1',
+ 'queryForm:j_id11': '',
+ 'queryForm:j_id18': '',
+ 'queryForm:j_id22': '',
+ 'queryForm:j_id26': '',
+ 'queryForm:j_id30': '',
+ 'queryForm:j_id34': '',
+ 'queryForm:j_id38': '',
+ 'queryForm:j_id42': '',
+ 'queryForm:j_id46': '',
+ 'queryForm:j_id56': '',
+ 'queryForm:j_id61': 'queryForm:j_id61',
+ 'queryForm:pageSizeText': '35',
+ 'queryForm:queryResCode': '',
+ 'queryForm:queryRoomIdHidden': '',
+ 'queryForm:querySiteSourceCode': '',
+ 'queryForm:queryStationIdHidden': '',
+ 'queryForm:querytext': '',
+ 'queryForm:querytext2': '',
+ 'queryForm:unitHidden': '0099977,0099978,0099979,0099980,0099981,0099982'}
+INTO_DATA2={'AJAXREQUEST': '_viewRoot',
+ 'j_id317': 'j_id317',
+ 'j_id317:j_id320': 'j_id317:j_id320',
+ 'javax.faces.ViewState': 'j_id6'}
+INTO_DATA_FINAL={'j_id317': 'j_id317',
+ 'j_id317:j_id319': '全部',
+ 'javax.faces.ViewState': 'j_id6'}
+
+
+
+URL='http://omms.chinatowercom.cn:9000/business/resMge/devMge/listSwitchPower.xhtml'
+HEADERS = {
+            'Host': 'omms.chinatowercom.cn:9000',
+            'Origin': 'http://omms.chinatowercom.cn:9000',
+            'Referer': 'http://omms.chinatowercom.cn:9000/business/resMge/devMge/listSwitchPower.xhtml',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
+        }
