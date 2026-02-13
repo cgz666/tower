@@ -6,6 +6,7 @@ from spider.script.down_foura.foura_spider_universal import (
     performence_by_site_list,
     serch_performence,
 )
+from core.config import settings
 
 class performance_sheet:
     SIGNAL_LIST = [
@@ -28,8 +29,8 @@ class performance_sheet:
         "0418101001": 13,
         "0418102001": 14,
     }
-    FSU_PATH = r"F:\newtowerV2\websource\spider_download\fsu_chaxun_all\fsu清单.csv"
-    OUTPUT_DIR = "spider/down/performance_sheet"
+    FSU_PATH = settings.resolve_path(f'spider/down/fsu_chaxun_all/fsu清单.csv')
+    OUTPUT_DIR = settings.resolve_path(f"spider/down/performance_sheet")
     COOKIE_USER = 1
     TIMEDELTA = 30
 
