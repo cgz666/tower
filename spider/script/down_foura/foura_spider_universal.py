@@ -113,7 +113,7 @@ def xlsx_to_csv(folder):
                 Xlsx2csv(path, outputencoding="utf-8").convert(csv_path)
 
 
-def concat_df(folder, output_path,gen_csv=False):
+def concat_df(folder, output_path, gen_csv=False):
     """
     合并指定文件夹下的所有.csv和.xls文件，并保存为一个新的Excel文件。
 
@@ -134,9 +134,11 @@ def concat_df(folder, output_path,gen_csv=False):
             df_list.append(temp)
 
     merge = pd.concat(df_list)
-    merge.to_excel(output_path, index=False)
+    output_path_str = str(output_path)
+    merge.to_excel(output_path_str, index=False)
     if gen_csv:
-        merge.to_csv(output_path.replace('.xlsx','.csv'),index=False,encoding='utf-8-sig')
+        csv_output_path = output_path_str.replace('.xlsx', '.csv')
+        merge.to_csv(csv_output_path, index=False, encoding='utf-8-sig')
     return merge, output_path
 
 def log_downtime(fuc_name):
@@ -463,8 +465,6 @@ class fsu_chaxun():
         self.down()
         concat_df(self.folder_temp, self.output_path, gen_csv=True)
         log_downtime(self.down_name_en)
-
-
 """
 爬取fsu查询，路径：工单管理-日常修理-隐患库-[归档起止时间:清除，地市:全选]-导出
 """
@@ -478,7 +478,6 @@ class yinhuan_order():
         self.down_name = '隐患工单'
         self.down_name_en = 'yinhuan_order'
         self.down_suffix = '.xls'
-        # 改动9：统一使用settings.resolve_path解析路径
         self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
@@ -693,63 +692,63 @@ class station_alias():
 """
 爬取运营商站址关系，路径：运行监控-FSU监控-[注册状态：离线]-查询-导出
 """
-class fsu_jiankong():
-    def __init__(self):
-        self.data=foura_data.fsu_jiankong
-        self.now = datetime.datetime.now()
-        self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/fsuMge/listFsu.xhtml'
-        self.down_name_en='fsu_hafhour'
-        self.down_name_en1='fsu_jiankong_5min'
-        self.output_path = f'{INDEX}updatenas/fsu/每半小时fsu离线/{datetime.datetime.now().strftime("%Y%m%d_%H%M")}fsu离线.xlsx'
-        self.temp_path=f'{INDEX}websource/temp_folder_one_day/fsu5分钟.xlsx'
-    def down(self):
-        down_file(self.URL, self.data, self.output_path)
-        if datetime.datetime.now().minute < 30:
-            shutil.copy(self.output_path, self.output_path.replace('每半小时', '每小时'))
-        log_downtime(self.down_name_en)
-    def down_5min(self):
-        down_file(self.URL, self.data, self.temp_path)
-        self.sql_process(self.temp_path)
-        log_downtime(self.down_name_en1)
-    def sql_process(self,path):
-        df = pd.read_excel(path, dtype=str)
-        df=df.fillna('')
-        df=df.loc[df['离线时间']!='']
-        with sql_orm().session_scope() as temp:
-            sql, Base = temp
-            pojo_brokentime = Base.classes.fsu_brokentime_log
-            pojo_brokentimes = Base.classes.fsu_brokentimes_log
-            now = datetime.datetime.now()
-            if now.hour == 7:
-                res = sql.query(pojo_brokentimes).all()
-                for log in res:
-                    log.broken_times = 0
-            for index, row in df.iterrows():
-                res = sql.query(pojo_brokentimes).filter(pojo_brokentimes.id == row['站址']).first()
-                if res == None:
-                    # 次数统计
-                    log = pojo_brokentimes()
-                    log.id = row['站址']
-                    log.begin_time = row['离线时间']
-                    log.broken_times = 1
-                    sql.merge(log)
-                    # 离线记录
-                    log = pojo_brokentime()
-                    log.id = row['站址']
-                    log.begin_time = row['离线时间']
-                    sql.add(log)
-                else:
-                    begin_time = datetime.datetime.strptime(res.begin_time, '%Y/%m/%d  %H:%M:%S')
-                    begin_time_row = datetime.datetime.strptime(row['离线时间'], '%Y/%m/%d  %H:%M:%S')
-                    if begin_time_row > begin_time:
-                        # 次数统计
-                        res.begin_time = row['离线时间']
-                        res.broken_times += 1
-                        # 离线记录
-                        log = pojo_brokentime()
-                        log.id = row['站址']
-                        log.begin_time = row['离线时间']
-                        sql.add(log)
+# class fsu_jiankong():
+#     def __init__(self):
+#         self.data=foura_data.fsu_jiankong
+#         self.now = datetime.datetime.now()
+#         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/fsuMge/listFsu.xhtml'
+#         self.down_name_en='fsu_hafhour'
+#         self.down_name_en1='fsu_jiankong_5min'
+#         self.output_path = f'{INDEX}updatenas/fsu/每半小时fsu离线/{datetime.datetime.now().strftime("%Y%m%d_%H%M")}fsu离线.xlsx'
+#         self.temp_path=f'{INDEX}websource/temp_folder_one_day/fsu5分钟.xlsx'
+#     def down(self):
+#         down_file(self.URL, self.data, self.output_path)
+#         if datetime.datetime.now().minute < 30:
+#             shutil.copy(self.output_path, self.output_path.replace('每半小时', '每小时'))
+#         log_downtime(self.down_name_en)
+#     def down_5min(self):
+#         down_file(self.URL, self.data, self.temp_path)
+#         self.sql_process(self.temp_path)
+#         log_downtime(self.down_name_en1)
+#     def sql_process(self,path):
+#         df = pd.read_excel(path, dtype=str)
+#         df=df.fillna('')
+#         df=df.loc[df['离线时间']!='']
+#         with sql_orm().session_scope() as temp:
+#             sql, Base = temp
+#             pojo_brokentime = Base.classes.fsu_brokentime_log
+#             pojo_brokentimes = Base.classes.fsu_brokentimes_log
+#             now = datetime.datetime.now()
+#             if now.hour == 7:
+#                 res = sql.query(pojo_brokentimes).all()
+#                 for log in res:
+#                     log.broken_times = 0
+#             for index, row in df.iterrows():
+#                 res = sql.query(pojo_brokentimes).filter(pojo_brokentimes.id == row['站址']).first()
+#                 if res == None:
+#                     # 次数统计
+#                     log = pojo_brokentimes()
+#                     log.id = row['站址']
+#                     log.begin_time = row['离线时间']
+#                     log.broken_times = 1
+#                     sql.merge(log)
+#                     # 离线记录
+#                     log = pojo_brokentime()
+#                     log.id = row['站址']
+#                     log.begin_time = row['离线时间']
+#                     sql.add(log)
+#                 else:
+#                     begin_time = datetime.datetime.strptime(res.begin_time, '%Y/%m/%d  %H:%M:%S')
+#                     begin_time_row = datetime.datetime.strptime(row['离线时间'], '%Y/%m/%d  %H:%M:%S')
+#                     if begin_time_row > begin_time:
+#                         # 次数统计
+#                         res.begin_time = row['离线时间']
+#                         res.broken_times += 1
+#                         # 离线记录
+#                         log = pojo_brokentime()
+#                         log.id = row['站址']
+#                         log.begin_time = row['离线时间']
+#                         sql.add(log)
 
 """
 爬取历史告警Hbase，路径：运行监控-历史告警Hbase-[告警发生时间区间,告警名称]-导出excel
@@ -873,8 +872,6 @@ class performence():
 """
 爬取性能查询，路径：运行监控-性能查询-查询-导出
 """
-
-
 class performence_by_site_list():
     # 路径：运行监控-性能查询-查询-导出
     # 站址运维ID入参
@@ -970,7 +967,6 @@ class serch_performence():
 """
 爬取当前活动告警，从数据库拿，字段不完全
 """
-
 
 class alarm_now():
     def __init__(self):
