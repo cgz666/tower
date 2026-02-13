@@ -81,4 +81,6 @@ Thumbs.db
 htmlcov/
 # 数据
 data/
-*.xls;xlsx;csv
+*.xls
+*.xlsx
+*.csv
