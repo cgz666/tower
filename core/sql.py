@@ -52,8 +52,7 @@ class sql_orm():
         with self.session_scope() as (sql, Base):
             pojo = getattr(Base.classes, "cookies")
             if id == "foura":
-                suffix = random.choice([1, 2, 3])
-                id = f"foura{suffix}"
+                id = "foura1"
             res = sql.query(pojo).filter(pojo.id==id).first()
             cookies_str = res.cookies
             cookies = {}
@@ -66,3 +65,5 @@ class sql_orm():
     def get_data(self,table):
         df = pd.read_sql_table(table, con=self.engine)
         return df
+    def get_engine(self):
+        return self.engine
