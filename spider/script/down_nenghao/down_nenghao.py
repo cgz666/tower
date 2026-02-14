@@ -1,7 +1,6 @@
-from utils.retry_wrapper import requests_get
-from websource.spider.down_nenghao import config_equiment_constitution as CONFIG,config_lixian as CONFIG2
-from config import SPIDER_PATH
-from utils.sql_utils import sql_orm
+from core.utils.retry_wrapper import requests_get
+from spider.script.down_nenghao import config_equiment_constitution as CONFIG,config_lixian as CONFIG2
+from core.sql import sql_orm
 import datetime
 # 能耗系统设备情况下载
 #导出路径

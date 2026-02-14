@@ -1114,7 +1114,6 @@ performence={
             'javax.faces.ViewState': 'j_id3',
             }
         }
-
 alarm_now={
   "1": {
     "AJAXREQUEST": "_viewRoot",
@@ -1335,5 +1334,83 @@ station_liangyi = {
     "j_id1668:j_id1670": "全部",
     "javax.faces.ViewState": "j_id4",
     "queryForm:unitHidden": ""
+  }
+}
+fault_monitoring = {
+  "1": {
+    "AJAXREQUEST": "_viewRoot",
+    "hisQueryForm": "hisQueryForm",
+    "hisQueryForm:unitHidden": "",
+    "hisQueryForm:unitHid": "",
+    "hisQueryForm:queryDay": "30",
+    "hisQueryForm:treeCityId": "",
+    "hisQueryForm:treeProvinceId": "0098364",
+    "hisQueryForm:queryFaultMids_hiddenValue": "退服场景",
+    "hisQueryForm:queryFaultMids": "退服场景",
+    "hisQueryForm:queryFaultDetail": "",
+    "hisQueryForm:queryFaultDetailName": "",
+    "hisQueryForm:queryLevel_hiddenValue": "",
+    "hisQueryForm:j_id200": "",
+    "hisQueryForm:j_id204": "",
+    "hisQueryForm:j_id208": "",
+    "hisQueryForm:j_id212": "",
+    "hisQueryForm:j_id216": "",
+    "hisQueryForm:j_id220": "",
+    "hisQueryForm:firststarttimeInputDate": "",
+    "hisQueryForm:firststarttimeInputCurrentDate": "",
+    "hisQueryForm:firstendtimeInputDate": "",
+    "hisQueryForm:firstendtimeInputCurrentDate": "",
+    "hisQueryForm:j_id228": "",
+    "hisQueryForm:recoverstarttimeInputDate": "",
+    "hisQueryForm:recoverstarttimeInputCurrentDate": "",
+    "hisQueryForm:recoverendtimeInputDate": "",
+    "hisQueryForm:recoverendtimeInputCurrentDate": "",
+    "hisQueryForm:j_id236": "",
+    "hisQueryForm:queryFsuStatus_hiddenValue": "",
+    "hisQueryForm:currPageObjId": "1",
+    "hisQueryForm:pageSizeText": "35",
+    "javax.faces.ViewState": "j_id6",
+    "hisQueryForm:j_id247": "hisQueryForm:j_id247",
+    "AJAX:EVENTS_COUNT": "1"
+            },
+  "2": {
+   "AJAXREQUEST": "_viewRoot",
+   "hisQueryForm": "hisQueryForm",
+   "hisQueryForm:unitHidden": "",
+   "hisQueryForm:unitHid": "",
+   "hisQueryForm:queryDay": "30",
+   "hisQueryForm:treeCityId": "",
+   "hisQueryForm:treeProvinceId": "0098364",
+   "hisQueryForm:queryFaultMids_hiddenValue": "退服场景",
+   "hisQueryForm:queryFaultMids": "退服场景",
+   "hisQueryForm:queryFaultDetail": "",
+   "hisQueryForm:queryFaultDetailName": "",
+   "hisQueryForm:queryLevel_hiddenValue": "",
+   "hisQueryForm:j_id200": "",
+   "hisQueryForm:j_id204": "",
+   "hisQueryForm:j_id208": "",
+   "hisQueryForm:j_id212": "",
+   "hisQueryForm:j_id216": "",
+   "hisQueryForm:j_id220": "",
+   "hisQueryForm:firststarttimeInputDate": "",
+   "hisQueryForm:firststarttimeInputCurrentDate": "",
+   "hisQueryForm:firstendtimeInputDate": "",
+   "hisQueryForm:firstendtimeInputCurrentDate": "",
+   "hisQueryForm:j_id228": "",
+   "hisQueryForm:recoverstarttimeInputDate": "",
+   "hisQueryForm:recoverstarttimeInputCurrentDate": "",
+   "hisQueryForm:recoverendtimeInputDate": "",
+   "hisQueryForm:recoverendtimeInputCurrentDate": "",
+   "hisQueryForm:j_id236": "",
+   "hisQueryForm:queryFsuStatus_hiddenValue": "",
+   "hisQueryForm:currPageObjId": "1",
+   "hisQueryForm:pageSizeText": "35",
+   "javax.faces.ViewState": "j_id6",
+   "hisQueryForm:j_id247": "hisQueryForm:j_id247"
+            },
+  "FINAL": {
+   "j_id404": "j_id404",
+   "j_id404:j_id406": "全部",
+   "javax.faces.ViewState": "j_id6"
   }
 }

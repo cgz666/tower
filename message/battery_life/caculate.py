@@ -10,7 +10,7 @@ import requests
 from utils.send_ding_msg import dingmsg
 import uuid
 import time
-class battery_life_caculate():
+class BatteryLifeCaculate():
     def __init__(self):
         self.down_path = f"{INDEX}message/battery_life/xls/活动告警.csv"
     def init_pojo(self, table_name, **kwargs):
@@ -219,8 +219,8 @@ class battery_life_caculate():
 
 
 if __name__ == '__main__':
-    # battery_life_caculate().calculate_zhiliu_voltage()
-    # battery_life_caculate().calculate_voltage()
-    # battery_life_caculate().calculate_offline()
-    battery_life_caculate().generate_result()
-    # battery_life_caculate().generate_result_shangdan()
+    # BatteryLifeCaculate().calculate_zhiliu_voltage()
+    # BatteryLifeCaculate().calculate_voltage()
+    # BatteryLifeCaculate().calculate_offline()
+    BatteryLifeCaculate().generate_result()
+    # BatteryLifeCaculate().generate_result_shangdan()

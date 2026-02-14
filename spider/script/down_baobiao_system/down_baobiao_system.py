@@ -1,15 +1,14 @@
 import os
 from seleniumwire import webdriver
-from config import INDEX
 import requests
 import datetime
 from websource.keepalive.foura_selenium_operation import \
     open_4a,login_menhu,login_baobiao,login_yunjian,choose_table,\
     login_menhu_and_login_yunjian,refresh_fail,login_baobiao_fail,choose_table_fail
-from config import BROWSER_DOWN
 from websource.spider.down_foura.foura_spider_universal import log_downtime
+BROWSER_DOWN='C:/Users/Administrator/Downloads/'
 
-class down_baobiao_system():
+class BaoBiaoSystem():
     def test(self,driver):
         while True:
             try:
@@ -91,4 +90,4 @@ class down_baobiao_system():
 
 
 if __name__ == '__main__':
-    down_baobiao_system().main()
+    BaoBiaoSystem().main()

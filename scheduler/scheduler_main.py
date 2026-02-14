@@ -2,11 +2,14 @@
 import schedule
 import time
 import threading
+import random
 from scheduler.task_logger import log_task_execution
 from app.service.msg_energy_offline.script import main as msg_energy_offline
 from app.service.msg_energy_order.script import main as msg_energy_order
 from app.service.msg_zhilian_order.script import main as msg_zhilian_order
 from spider.script.down_foura import down_yitihua_order,foura_spider_universal
+from message.performance_sheet.script import PerformanceSheet
+from message.ID_serch.down_file import GetBattery,GetLiBattery,GetKaiGuan
 
 def run_task_in_thread(task_func, task_name):
     """在独立线程中运行任务并记录日志"""
@@ -64,13 +67,13 @@ def schedule_loop():
     schedule.every().day.at("07:40").do(run_task_in_thread,down_baobiao_system().main, "报表系统下载")
 
     # 8:00
-    schedule.every().day.at("08:00").do(run_task_in_thread,lambda: foura_spider_universal.yinhuan_order().main(), "隐患工单")
-    schedule.every().day.at("08:00").do(run_task_in_thread,lambda: down_yitihua_order.down_yitihua_order().main(), "一体化工单下载")
+    schedule.every().day.at("08:00").do(run_task_in_thread,lambda: foura_spider_universal.YinHuanOrder().main(), "隐患工单")
+    schedule.every().day.at("08:00").do(run_task_in_thread,lambda: down_yitihua_order.YiTiHuaOrder().main(), "一体化工单下载")
 
     # 8:00, 14:00, 17:00（多时间点）
-    schedule.every().day.at("08:00").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), performance_sheet().run()), "绩效报表")
-    schedule.every().day.at("14:00").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), performance_sheet().run()), "绩效报表")
-    schedule.every().day.at("17:00").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), performance_sheet().run()), "绩效报表")
+    schedule.every().day.at("08:00").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), performance_sheet().run()), "性能查询表")
+    schedule.every().day.at("14:00").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), performance_sheet().run()), "性能查询表")
+    schedule.every().day.at("17:00").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), performance_sheet().run()), "性能查询表")
 
     # 13:40
     schedule.every().day.at("13:40").do(run_task_in_thread,lambda: foura_spider_universal.fsu_chaxun().main(), "FSU查询(下午)")

@@ -17,8 +17,6 @@ import shutil
 """
 通用函数模块，包含项目中常用的工具函数，如重试装饰器、请求函数、文件操作函数等。
 """
-
-
 def retry(max_attempts=1, delay=2):
     """
     重试装饰器，用于对指定函数进行重试操作。
@@ -45,8 +43,6 @@ def retry(max_attempts=1, delay=2):
         return wrapper
 
     return decorator_retry
-
-
 @retry()
 def requests_post(url, headers={}, data={}, cookies={}, timeout=300):
     """
@@ -60,8 +56,6 @@ def requests_post(url, headers={}, data={}, cookies={}, timeout=300):
     :return: 请求响应对象。
     """
     return requests.post(url, headers=headers, data=data, cookies=cookies, timeout=timeout)
-
-
 @retry()
 def requests_get(url, headers={}, params={}, cookies={}):
     """
@@ -74,8 +68,6 @@ def requests_get(url, headers={}, params={}, cookies={}):
     :return: 请求响应对象。
     """
     return requests.get(url, headers=headers, params=params, cookies=cookies)
-
-
 def get_foura_cookie(ID=1):
     """
     从数据库中获取指定ID的foura cookie信息。
@@ -86,8 +78,6 @@ def get_foura_cookie(ID=1):
     db = sql_orm()
     cookie_result = db.get_cookies(id=f"foura{ID}")
     return cookie_result["cookies"]
-
-
 def clear_folder(folder_temp):
     """
     清空指定文件夹下的所有文件。
@@ -97,8 +87,6 @@ def clear_folder(folder_temp):
     for file in os.listdir(folder_temp):
         file = os.path.join(folder_temp, file)
         os.remove(file)
-
-
 def xlsx_to_csv(folder):
     """
     将指定文件夹下的所有.xlsx文件转换为.csv文件。
@@ -111,8 +99,6 @@ def xlsx_to_csv(folder):
             csv_path = path.replace(".xlsx", ".csv")  # 对应的 .csv 文件路径
             if not os.path.exists(csv_path):
                 Xlsx2csv(path, outputencoding="utf-8").convert(csv_path)
-
-
 def concat_df(folder, output_path, gen_csv=False):
     """
     合并指定文件夹下的所有.csv和.xls文件，并保存为一个新的Excel文件。
@@ -140,7 +126,6 @@ def concat_df(folder, output_path, gen_csv=False):
         csv_output_path = output_path_str.replace('.xlsx', '.csv')
         merge.to_csv(csv_output_path, index=False, encoding='utf-8-sig')
     return merge, output_path
-
 def log_downtime(fuc_name):
     """
     记录指定操作的下载时间到数据库。
@@ -152,8 +137,6 @@ def log_downtime(fuc_name):
         pojo = Base.classes.update_downhour_log
         res = session.query(pojo).filter(pojo.type == fuc_name).first()
         res.time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-
 def down_file(url, data, path, conten_len_error=3000, xlsx_juge=False, cookie_user=1):
     """
     下载文件，支持重试机制和文件验证。
@@ -198,8 +181,6 @@ def down_file(url, data, path, conten_len_error=3000, xlsx_juge=False, cookie_us
             raise
         except Exception:
             raise
-
-
 def down_file_no_save(url, data, cookie_user=1):
     """
     下载文件，支持重试机制和文件验证。
@@ -221,9 +202,7 @@ def down_file_no_save(url, data, cookie_user=1):
         res = requests_post(url, headers=headers, cookies=cookies)
         html = BeautifulSoup(res.text, 'html.parser')
         javax = html.find('input', id='javax.faces.ViewState')['value']
-        print(javax)
         for key, into_data in data.items():
-            print('[DEBUG] 本次ViewState', javax)
             into_data['javax.faces.ViewState'] = javax
             res = requests_post(url, headers=headers, data=into_data, cookies=cookies)
         soup = BeautifulSoup(res.text, 'html.parser')
@@ -251,13 +230,10 @@ def down_file_no_save(url, data, cookie_user=1):
     except Exception as e:
         print(e)
 
-
 """
 爬取站址信息，路径：资源管理-站址管理-取消FSU工程状态：交维，改为全选-导出
 """
-
-
-class station():
+class Station():
     def __init__(self):
         self.data = foura_data.station
         self.now = datetime.datetime.now()
@@ -338,13 +314,10 @@ class station():
         else:
             raise FileNotFoundError("文件下载不全，当前仅下载了 {} 个文件".format(len(os.listdir(self.folder_temp))))
 
-
 """
 爬取两翼站址信息，路径：资源管理-站址管理-两翼-导出
 """
-
-
-class station_liangyi():
+class StationLiangYi():
     def __init__(self):
         self.data = foura_data.station_liangyi
         self.now = datetime.datetime.now()
@@ -384,13 +357,10 @@ class station_liangyi():
         else:
             raise FileNotFoundError("文件下载不全，当前仅下载了 {} 个文件".format(len(os.listdir(self.folder_temp))))
 
-
 """
 爬取站址信息，路径：运行监控-基站直流负载总电流-查询-导出
 """
-
-
-class station_DC():
+class StationDC():
     def __init__(self):
         self.data = foura_data.station_DC
         self.now = datetime.datetime.now()
@@ -441,7 +411,7 @@ class station_DC():
 """
 爬取fsu查询，路径：运行监控-fsu查询-导出
 """
-class fsu_chaxun():
+class FsuChaXun():
     def __init__(self):
         self.data = foura_data.fsu_chaxun
         self.now = datetime.datetime.now()
@@ -465,12 +435,11 @@ class fsu_chaxun():
         self.down()
         concat_df(self.folder_temp, self.output_path, gen_csv=True)
         log_downtime(self.down_name_en)
+
 """
 爬取fsu查询，路径：工单管理-日常修理-隐患库-[归档起止时间:清除，地市:全选]-导出
 """
-
-
-class yinhuan_order():
+class YinHuanOrder():
     def __init__(self):
         self.data = foura_data.yinhuan_order
         self.now = datetime.datetime.now()
@@ -528,13 +497,10 @@ class yinhuan_order():
             concat_df(self.folder_temp, output_path)
         log_downtime(self.down_name_en)
 
-
 """
 爬取移动接口工单，路径：我的工作台-运维管理综合查询-[故障来源：移动运营商接口][当天工单][工单状态：待故障确认]-查询-工单列表-导出
 """
-
-
-class yidong_order():
+class YiDongOrder():
     def __init__(self):
         self.data = foura_data.yidong_order
         self.now = datetime.datetime.now()
@@ -542,7 +508,6 @@ class yidong_order():
         self.down_name = '移动接口工单'
         self.down_name_en = 'yidong_order'
         self.down_suffix = '.xls'
-        # 改动11：统一使用settings.resolve_path解析路径
         self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
@@ -568,14 +533,11 @@ class yidong_order():
         concat_df(self.folder_temp, self.output_path)
         log_downtime(self.down_name_en)
 
-
 """
 爬取历史所有运营商接口工单，路径：我的工作台-运维管理综合查询-[故障来源：联通+移动+电信运营商接口][当天前历史工单][回单和受理时间：上月1日到本月1日]-查询-导出
 每次爬取上个月整月的，本月的不爬取
 """
-
-
-class yunyingshang_order_history():
+class YunYingShangOrderHistory():
     def __init__(self, end=datetime.datetime.now()):
         self.data = foura_data.yunyingshang_order_history
         self.end = end.replace(day=1, hour=0, minute=0, second=0)
@@ -620,13 +582,10 @@ class yunyingshang_order_history():
         concat_df(self.folder_temp, self.output_path)
         log_downtime(self.down_name_en)
 
-
 """
 爬取录入异常设备清单，路径：资源管理-录入异常设备清单-导出
 """
-
-
-class luruyichang():
+class LuRuYiChang():
     def __init__(self):
         self.data = foura_data.lururyichang
         self.now = datetime.datetime.now()
@@ -654,13 +613,10 @@ class luruyichang():
         concat_df(self.folder_temp, self.output_path)
         log_downtime(self.down_name_en)
 
-
 """
 爬取运营商站址关系，路径：客户关系-运营商站址关系匹配-导出
 """
-
-
-class station_alias():
+class StationAlias():
     def __init__(self):
         self.data = foura_data.station_alias
         self.now = datetime.datetime.now()
@@ -688,74 +644,71 @@ class station_alias():
         concat_df(self.folder_temp, self.output_path)
         log_downtime(self.down_name_en)
 
-
 """
 爬取运营商站址关系，路径：运行监控-FSU监控-[注册状态：离线]-查询-导出
 """
-# class fsu_jiankong():
-#     def __init__(self):
-#         self.data=foura_data.fsu_jiankong
-#         self.now = datetime.datetime.now()
-#         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/fsuMge/listFsu.xhtml'
-#         self.down_name_en='fsu_hafhour'
-#         self.down_name_en1='fsu_jiankong_5min'
-#         self.output_path = f'{INDEX}updatenas/fsu/每半小时fsu离线/{datetime.datetime.now().strftime("%Y%m%d_%H%M")}fsu离线.xlsx'
-#         self.temp_path=f'{INDEX}websource/temp_folder_one_day/fsu5分钟.xlsx'
-#     def down(self):
-#         down_file(self.URL, self.data, self.output_path)
-#         if datetime.datetime.now().minute < 30:
-#             shutil.copy(self.output_path, self.output_path.replace('每半小时', '每小时'))
-#         log_downtime(self.down_name_en)
-#     def down_5min(self):
-#         down_file(self.URL, self.data, self.temp_path)
-#         self.sql_process(self.temp_path)
-#         log_downtime(self.down_name_en1)
-#     def sql_process(self,path):
-#         df = pd.read_excel(path, dtype=str)
-#         df=df.fillna('')
-#         df=df.loc[df['离线时间']!='']
-#         with sql_orm().session_scope() as temp:
-#             sql, Base = temp
-#             pojo_brokentime = Base.classes.fsu_brokentime_log
-#             pojo_brokentimes = Base.classes.fsu_brokentimes_log
-#             now = datetime.datetime.now()
-#             if now.hour == 7:
-#                 res = sql.query(pojo_brokentimes).all()
-#                 for log in res:
-#                     log.broken_times = 0
-#             for index, row in df.iterrows():
-#                 res = sql.query(pojo_brokentimes).filter(pojo_brokentimes.id == row['站址']).first()
-#                 if res == None:
-#                     # 次数统计
-#                     log = pojo_brokentimes()
-#                     log.id = row['站址']
-#                     log.begin_time = row['离线时间']
-#                     log.broken_times = 1
-#                     sql.merge(log)
-#                     # 离线记录
-#                     log = pojo_brokentime()
-#                     log.id = row['站址']
-#                     log.begin_time = row['离线时间']
-#                     sql.add(log)
-#                 else:
-#                     begin_time = datetime.datetime.strptime(res.begin_time, '%Y/%m/%d  %H:%M:%S')
-#                     begin_time_row = datetime.datetime.strptime(row['离线时间'], '%Y/%m/%d  %H:%M:%S')
-#                     if begin_time_row > begin_time:
-#                         # 次数统计
-#                         res.begin_time = row['离线时间']
-#                         res.broken_times += 1
-#                         # 离线记录
-#                         log = pojo_brokentime()
-#                         log.id = row['站址']
-#                         log.begin_time = row['离线时间']
-#                         sql.add(log)
+class FsuJianKong():
+    def __init__(self):
+        self.data=foura_data.fsu_jiankong
+        self.now = datetime.datetime.now()
+        self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/fsuMge/listFsu.xhtml'
+        self.down_name_en='fsu_hafhour'
+        self.down_name_en1='fsu_jiankong_5min'
+        self.output_path = settings.resolve_path(f'updatenas/fsu/每半小时fsu离线/{datetime.datetime.now().strftime("%Y%m%d_%H%M")}fsu离线.xlsx')
+        self.temp_path=f'{INDEX}websource/temp_folder_one_day/fsu5分钟.xlsx'
+    def down(self):
+        down_file(self.URL, self.data, self.output_path)
+        if datetime.datetime.now().minute < 30:
+            shutil.copy(self.output_path, self.output_path.replace('每半小时', '每小时'))
+        log_downtime(self.down_name_en)
+    def down_5min(self):
+        down_file(self.URL, self.data, self.temp_path)
+        self.sql_process(self.temp_path)
+        log_downtime(self.down_name_en1)
+    def sql_process(self,path):
+        df = pd.read_excel(path, dtype=str)
+        df=df.fillna('')
+        df=df.loc[df['离线时间']!='']
+        with sql_orm().session_scope() as temp:
+            sql, Base = temp
+            pojo_brokentime = Base.classes.fsu_brokentime_log
+            pojo_brokentimes = Base.classes.fsu_brokentimes_log
+            now = datetime.datetime.now()
+            if now.hour == 7:
+                res = sql.query(pojo_brokentimes).all()
+                for log in res:
+                    log.broken_times = 0
+            for index, row in df.iterrows():
+                res = sql.query(pojo_brokentimes).filter(pojo_brokentimes.id == row['站址']).first()
+                if res == None:
+                    # 次数统计
+                    log = pojo_brokentimes()
+                    log.id = row['站址']
+                    log.begin_time = row['离线时间']
+                    log.broken_times = 1
+                    sql.merge(log)
+                    # 离线记录
+                    log = pojo_brokentime()
+                    log.id = row['站址']
+                    log.begin_time = row['离线时间']
+                    sql.add(log)
+                else:
+                    begin_time = datetime.datetime.strptime(res.begin_time, '%Y/%m/%d  %H:%M:%S')
+                    begin_time_row = datetime.datetime.strptime(row['离线时间'], '%Y/%m/%d  %H:%M:%S')
+                    if begin_time_row > begin_time:
+                        # 次数统计
+                        res.begin_time = row['离线时间']
+                        res.broken_times += 1
+                        # 离线记录
+                        log = pojo_brokentime()
+                        log.id = row['站址']
+                        log.begin_time = row['离线时间']
+                        sql.add(log)
 
 """
 爬取历史告警Hbase，路径：运行监控-历史告警Hbase-[告警发生时间区间,告警名称]-导出excel
 """
-
-
-class alarm_history_Hbase():
+class AlarmHistoryHbase():
     def __init__(self, year=0, month=0):
         self.data = foura_data.alarm_history_Hbase
         if month != 0:
@@ -817,13 +770,10 @@ class alarm_history_Hbase():
         self.df_sql_process()
         log_downtime(self.down_name_en)
 
-
 """
 爬取性能查询，路径：运行监控-性能查询-查询-导出
 """
-
-
-class performence():
+class Performence():
     # 路径：运行监控-性能查询-查询-导出
     def __init__(self):
         self.data = foura_data.performence
@@ -868,11 +818,10 @@ class performence():
         #         down_by_city(city)
         concat_df(folder_temp, out_put, gen_csv=csv)
 
-
 """
 爬取性能查询，路径：运行监控-性能查询-查询-导出
 """
-class performence_by_site_list():
+class PerformenceBySiteList():
     # 路径：运行监控-性能查询-查询-导出
     # 站址运维ID入参
     def __init__(self):
@@ -911,13 +860,10 @@ class performence_by_site_list():
             df_list.append(df)
         return pd.concat(df_list)
 
-
 """
 爬取某个站的性能查询，路径：运行监控-性能查询-查询-导出
 """
-
-
-class serch_performence():
+class SerchPerformence():
     def __init__(self):
         self.data = foura_data.performence
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/performanceMge/perfdata.xhtml'
@@ -963,12 +909,10 @@ class serch_performence():
         except Exception as e:
             return signal
 
-
 """
 爬取当前活动告警，从数据库拿，字段不完全
 """
-
-class alarm_now():
+class AlarmNow():
     def __init__(self):
         self.db_fields = [
             "ID", "告警类别", "告警对象类型", "告警对象ID", "告警对象名称",
@@ -1023,13 +967,10 @@ class alarm_now():
             df.to_excel(target_path, index=False)
         return
 
-
 """
 爬取4A活动告警，允许自定义参数，单独调用
 """
-
-
-class alarm_now_4A_by_city():
+class AlarmNow4AByCity():
     def __init__(self):
         self.data = foura_data.alarm_now
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/alarmMge/listAlarm.xhtml'
@@ -1039,6 +980,57 @@ class alarm_now_4A_by_city():
             self.data[key]['queryForm:unitHidden'] = city
         down_file(self.URL, self.data, path)
 
+"""
+爬取故障监控，路径：4A运维监控系统-运行监控-故障管理-故障监控-[活动\历史故障监控,故障场景:退服场景,时间范围：当月一号到今天]-查询-导出
+"""
+class FaultMonitoring():
+    def __init__(self):
+        self.data = foura_data.fault_monitoring
+        self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/faultAlarmMge/listFaultActive.xhtml"'
+        self.now = datetime.datetime.now()
+        self.start_date_str = datetime.datetime(self.now.year, self.now.month, 1, 0, 0)
+        self.end_date_str = datetime.datetime(self.now.year, self.now.month, self.now.day, 0, 0)
+        self.down_name = '故障监控'
+        self.down_name_en = 'fault_monitoring'
+        self.down_suffix = '.xls'
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
+
+    def down(self):
+        clear_folder(self.folder_temp)
+        down_list = ['0099977', '0099978', '0099979', '0099980', '0099981', '0099982', '0099983', '0099984', '0099985',
+                     '0099986', '0099987', '0099988', '0099989', '0099990']
+        for city in down_list:
+            for key in ['1', '2']:
+                self.data[key]['hisQueryForm:unitHidden'] = city
+                self.data[key]["hisQueryForm:treeCityId"] = city
+                self.data[key]["hisQueryForm:firststarttimeInputDate"] = self.start_date_str.strftime('%Y-%m-%d %H:%M'),
+                self.data[key]["hisQueryForm:firststarttimeInputCurrentDate"] = self.now.strftime('%m/%Y'),
+                self.data[key]["hisQueryForm:firstendtimeInputDate"] = self.end_date_str.strftime('%Y-%m-%d %H:%M'),
+                self.data[key]["hisQueryForm:firstendtimeInputCurrentDate"] = self.now.strftime('%m/%Y'),
+                self.data[key]["hisQueryForm:recoverstarttimeInputCurrentDate"] = self.now.strftime('%m/%Y'),
+                self.data[key]["hisQueryForm:recoverendtimeInputCurrentDate"] = self.now.strftime('%m/%Y'),
+            path = os.path.join(self.folder_temp, f"{city}{self.down_suffix}")
+            down_file(self.URL, self.data, path)
+
+    def read_file(self):
+        df_list = []
+        for file in os.listdir(self.folder_temp):
+            path = os.path.join(self.folder_temp, file)
+            if '.xls' in file:
+                temp = pd.read_excel(path, dtype=str)
+                df_list.append(temp)
+        return df_list
+
+    def main(self):
+        self.down()
+        if len(os.listdir(self.folder_temp)) >= 14:
+            df_list = self.read_file()
+            merge = pd.concat(df_list)
+            merge.to_excel(self.output_path, index=False)
+            log_downtime(self.down_name_en)
+        else:
+            raise FileNotFoundError("文件下载不全，当前仅下载了 {} 个文件".format(len(os.listdir(self.folder_temp))))
 
 if __name__ == '__main__':
     # alarm_now().main()
@@ -1047,6 +1039,7 @@ if __name__ == '__main__':
     # station().main()
     # station_DC().main()
     # alarm_history_Hbase(year=2026, month=1).main()
-    fsu_chaxun().main()
+    # FsuChaXun().main()
     # yidong_order().main()
     # yinhuan_order().main()
+    FaultMonitoring().main()

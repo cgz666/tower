@@ -1,23 +1,23 @@
 import pandas as pd
-from utils.sql_utils import sql_orm
-from config import SPIDER_PATH
+from core.sql import sql_orm
 import pythoncom
 import shutil
 import os
-import re
 import datetime
 import win32com.client as win32
 from bs4 import BeautifulSoup
-from utils.retry_wrapper import requests_get,requests_post
-from websource.spider.down_foura.foura_spider_universal import get_foura_cookie,clear_folder,log_downtime
+from core.utils.retry_wrapper import requests_post
+from spider.script.down_foura.foura_spider_universal import get_foura_cookie,clear_folder,log_downtime
 import psutil
+from core.config import settings
+
 
 def kill_excel():
     for proc in psutil.process_iter(['pid', 'name']):
         if proc.info['name'] == 'EXCEL.EXE':
             proc.kill()
 
-class down_yitihua_order():
+class YiTiHuaOrder():
     def __init__(self,day=0):
         # 路径1：我的工作台-运维管理综合查询-[工单类型：历史工单，故障来源：移动/联通/电信运营商接口+铁塔集团接口，受理/回单起/始时间]-查询-导出-列表及详情
         # 路径2：我的工作台-运维管理综合查询-[工单类型：当前工单，故障来源：移动/联通/电信运营商接口+铁塔集团接口，工单状态：待故障确认]-查询-导出-列表及详情
@@ -323,9 +323,9 @@ class down_yitihua_order():
         self.down_name_en='yitihua_order'
         self.down_suffix='.xls'
 
-        self.folder_temp=f'{SPIDER_PATH}{self.down_name_en}/temp/'
-        self.output_path = f"{SPIDER_PATH}{self.down_name_en}/{self.start.strftime('%Y%m%d')}"
-        self.folder_temp_process=f'{SPIDER_PATH}{self.down_name_en}/process/'
+        self.folder_temp=settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.output_path=settings.resolve_path(f'spider/down/{self.down_name_en}/{self.start.strftime("%Y%m%d")}')
+        self.folder_temp_process=settings.resolve_path(f'spider/down/{self.down_name_en}/process/')
         self.sheet1=os.path.join(self.folder_temp_process, '1.xlsx')
         self.sheet2=os.path.join(self.folder_temp_process, '2.xlsx')
         self.model=os.path.join(self.folder_temp_process, '模板.xlsx')
@@ -535,6 +535,6 @@ class down_yitihua_order():
 
 
 if __name__ == '__main__':
-# down_yitihua_order().temp()
+# YiTiHuaOrder().temp()
     for i in [0]:
-        down_yitihua_order(day=i).main()
+        YiTiHuaOrder(day=i).main()
