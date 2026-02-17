@@ -163,6 +163,7 @@ def down_file(url, data, path, conten_len_error=3000, xlsx_juge=False, cookie_us
             for key, into_data in data.items():
                 into_data['javax.faces.ViewState'] = javax
                 res = requests_post(url, headers=headers, data=into_data, cookies=cookies)
+
                 if 'FINAL' in key:
                     if len(res.content) < conten_len_error:
                         raise ValueError("内容小于给定大小")
@@ -968,17 +969,43 @@ class AlarmNow():
         return
 
 """
-爬取4A活动告警，允许自定义参数，单独调用
+爬取4A活动告警，允许自定义参数，单独调用,路径：4A运维监控系统-运行监控-告警管理-活动告警监控-[告警等级:一级告警、二级告警，FSU状态：无]-查询-导出
 """
 class AlarmNow4AByCity():
     def __init__(self):
         self.data = foura_data.alarm_now
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/alarmMge/listAlarm.xhtml'
+        self.down_name = '活动告警'
+        self.down_name_en = 'alarm_now'
+        self.down_suffix = '.xls'
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
+    def down(self):
+        down_list = ['0099977', '0099978', '0099979', '0099980', '0099981', '0099982', '0099983', '0099984', '0099985',
+                     '0099986', '0099987', '0099988', '0099989', '0099990']
+        for city in down_list:
+            for key in ['1','2']:
+                self.data[key]['queryForm:unitHidden'] = city
+            path = os.path.join(self.folder_temp, f"{city}{self.down_suffix}")
+            down_file(self.URL, self.data, path)
+    def read_file(self):
+        df_list = []
+        for file in os.listdir(self.folder_temp):
+            path = os.path.join(self.folder_temp, file)
+            if '.xls' in file:
+                temp = pd.read_excel(path, dtype=str)
+                df_list.append(temp)
+        return df_list
 
-    def down(self, city, path):
-        for key in ['1']:
-            self.data[key]['queryForm:unitHidden'] = city
-        down_file(self.URL, self.data, path)
+    def main(self):
+        self.down()
+        if len(os.listdir(self.folder_temp)) >= 14:
+            df_list = self.read_file()
+            merge = pd.concat(df_list)
+            merge.to_excel(self.output_path, index=False)
+            log_downtime(self.down_name_en)
+        else:
+            raise FileNotFoundError("文件下载不全，当前仅下载了 {} 个文件".format(len(os.listdir(self.folder_temp))))
 
 """
 爬取故障监控，路径：4A运维监控系统-运行监控-故障管理-故障监控-[活动\历史故障监控,故障场景:退服场景,时间范围：当月一号到今天]-查询-导出
@@ -986,7 +1013,7 @@ class AlarmNow4AByCity():
 class FaultMonitoring():
     def __init__(self):
         self.data = foura_data.fault_monitoring
-        self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/faultAlarmMge/listFaultActive.xhtml"'
+        self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/faultAlarmMge/listFaultActive.xhtml'
         self.now = datetime.datetime.now()
         self.start_date_str = datetime.datetime(self.now.year, self.now.month, 1, 0, 0)
         self.end_date_str = datetime.datetime(self.now.year, self.now.month, self.now.day, 0, 0)
@@ -1001,7 +1028,7 @@ class FaultMonitoring():
         down_list = ['0099977', '0099978', '0099979', '0099980', '0099981', '0099982', '0099983', '0099984', '0099985',
                      '0099986', '0099987', '0099988', '0099989', '0099990']
         for city in down_list:
-            for key in ['1', '2']:
+            for key in ['1']:
                 self.data[key]['hisQueryForm:unitHidden'] = city
                 self.data[key]["hisQueryForm:treeCityId"] = city
                 self.data[key]["hisQueryForm:firststarttimeInputDate"] = self.start_date_str.strftime('%Y-%m-%d %H:%M'),
@@ -1033,13 +1060,6 @@ class FaultMonitoring():
             raise FileNotFoundError("文件下载不全，当前仅下载了 {} 个文件".format(len(os.listdir(self.folder_temp))))
 
 if __name__ == '__main__':
-    # alarm_now().main()
-    # station_liangyi().main()
-    # fsu_jiankong().down_5min()
-    # station().main()
-    # station_DC().main()
-    # alarm_history_Hbase(year=2026, month=1).main()
     # FsuChaXun().main()
-    # yidong_order().main()
-    # yinhuan_order().main()
-    FaultMonitoring().main()
+    # FaultMonitoring().main()
+    AlarmNow4AByCity().main()
