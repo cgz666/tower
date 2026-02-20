@@ -29,8 +29,8 @@ class PerformanceSheet:
         "0418101001": 13,
         "0418102001": 14,
     }
-    FSU_PATH = settings.resolve_path(f'spider/down/fsu_chaxun_all/fsu清单.csv')
-    OUTPUT_DIR = settings.resolve_path(f'message/performance_sheet/xls')
+    FSU_PATH = settings.resolve_path('spider/down/fsu_chaxun_all/fsu清单.csv')
+    OUTPUT_DIR = settings.resolve_path('message/performance_sheet/xls')
     COOKIE_USER = 1
     TIMEDELTA = 30
 

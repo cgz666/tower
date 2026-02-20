@@ -2,10 +2,11 @@ from core.utils.retry_wrapper import requests_post
 from bs4 import BeautifulSoup
 import os
 import pandas as pd
-import datetime
+from datetime import datetime,timedelta
 from core.sql import sql_orm
 from xlsx2csv import Xlsx2csv
 import time
+import re
 import requests
 from functools import wraps
 from sqlalchemy import text
@@ -136,7 +137,7 @@ def log_downtime(fuc_name):
         session, Base = temp
         pojo = Base.classes.update_downhour_log
         res = session.query(pojo).filter(pojo.type == fuc_name).first()
-        res.time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        res.time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 def down_file(url, data, path, conten_len_error=3000, xlsx_juge=False, cookie_user=1):
     """
     下载文件，支持重试机制和文件验证。
@@ -237,12 +238,12 @@ def down_file_no_save(url, data, cookie_user=1):
 class Station():
     def __init__(self):
         self.data = foura_data.station
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/siteMge/listSite.xhtml'
         self.down_name = '站址信息'
         self.down_name_en = 'station'
         self.down_suffix = '.xlsx'
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self):
@@ -321,12 +322,12 @@ class Station():
 class StationLiangYi():
     def __init__(self):
         self.data = foura_data.station_liangyi
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/siteMge/listSite.xhtml'
         self.down_name = '站址信息'
         self.down_name_en = 'station_liangyi'
         self.down_suffix = '.xls'
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self):
@@ -364,15 +365,15 @@ class StationLiangYi():
 class StationDC():
     def __init__(self):
         self.data = foura_data.station_DC
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         if self.now.day == 1:
-            self.now = self.now - datetime.timedelta(days=1)
+            self.now = self.now - timedelta(days=1)
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/siteMge/staPerDataList.xhtml'
         self.down_name = '基站负载电流'
         self.down_name_en = 'DC'
         self.down_suffix = '.xls'
         # 改动7：统一使用settings.resolve_path解析路径
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_folder = settings.resolve_path(f"spider/down/{self.down_name_en}")
         self.output_path = settings.resolve_path(
             f"{self.output_folder}/{self.now.strftime('%Y%m')}{self.down_name}.xlsx")
@@ -415,12 +416,12 @@ class StationDC():
 class FsuChaXun():
     def __init__(self):
         self.data = foura_data.fsu_chaxun
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/fsuMge/listQuertFsu.xhtml'
         self.down_name = 'fsu清单'
         self.down_name_en = 'fsu_chaxun_all'
         self.down_suffix = '.xlsx'
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self):
@@ -443,20 +444,20 @@ class FsuChaXun():
 class YinHuanOrder():
     def __init__(self):
         self.data = foura_data.yinhuan_order
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/hiddenFixMge/monitorList.xhtml'
         self.down_name = '隐患工单'
         self.down_name_en = 'yinhuan_order'
         self.down_suffix = '.xls'
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self, guidang):
         clear_folder(self.folder_temp)
         # for month in range(1, self.now.month + 1):
         #     last_day = calendar.monthrange(self.now.year, month)[1]
-        #     start = datetime.datetime(self.now.year, month, 1)
-        #     end = datetime.datetime(self.now.year, month, last_day, 23, 59, 59)
+        #     start = datetime(self.now.year, month, 1)
+        #     end = datetime(self.now.year, month, last_day, 23, 59, 59)
         start_year = self.now.year - 1
         end_year = self.now.year
         end_month = self.now.month
@@ -465,8 +466,8 @@ class YinHuanOrder():
             max_month = 12 if year < self.now.year else end_month
             for month in range(1, max_month + 1):  # 月份循环
                 last_day = calendar.monthrange(year, month)[1]
-                start = datetime.datetime(year, month, 1)
-                end = datetime.datetime(year, month, last_day, 23, 59, 59)
+                start = datetime(year, month, 1)
+                end = datetime(year, month, last_day, 23, 59, 59)
 
                 for key in ['1', '2', '3']:
                     self.data[key]['queryForm:queryType'] = guidang
@@ -481,8 +482,8 @@ class YinHuanOrder():
                     self.data[key]['queryForm:finishtimeEndInputCurrentDate'] = end.strftime('%m/%Y')
                     self.data[key]['queryForm:hiddenAuditDateEndInputCurrentDate'] = end.strftime('%m/%Y')
                     self.data[key]['queryForm:hiddenRecordDateEndInputCurrentDate'] = end.strftime('%m/%Y')
-                    self.data[key]['queryForm:finishtimeStartTimeHours'] = datetime.datetime.now().strftime('%H')
-                    self.data[key]['queryForm:finishtimeStartTimeMinutes'] = datetime.datetime.now().strftime('%M')
+                    self.data[key]['queryForm:finishtimeStartTimeHours'] = datetime.now().strftime('%H')
+                    self.data[key]['queryForm:finishtimeStartTimeMinutes'] = datetime.now().strftime('%M')
 
                 # 改动10：用os.path.join拼接路径
                 path = os.path.join(self.folder_temp, f"{guidang}_{year}_{month}{self.down_suffix}")
@@ -504,12 +505,12 @@ class YinHuanOrder():
 class YiDongOrder():
     def __init__(self):
         self.data = foura_data.yidong_order
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/billDeal/monitoring/list/billList.xhtml'
         self.down_name = '移动接口工单'
         self.down_name_en = 'yidong_order'
         self.down_suffix = '.xls'
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self):
@@ -539,17 +540,17 @@ class YiDongOrder():
 每次爬取上个月整月的，本月的不爬取
 """
 class YunYingShangOrderHistory():
-    def __init__(self, end=datetime.datetime.now()):
+    def __init__(self, end=datetime.now()):
         self.data = foura_data.yunyingshang_order_history
         self.end = end.replace(day=1, hour=0, minute=0, second=0)
-        self.begin = (self.end - datetime.timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0)
-        self.now = datetime.datetime.now()
+        self.begin = (self.end - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0)
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/billDeal/monitoring/list/billList.xhtml'
         self.down_name = '运营商接口工单'
         self.down_name_en = 'yunyingshang_order_history'
         self.down_suffix = '.xls'
         # 改动13：统一使用settings.resolve_path解析路径
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(
             f"spider/down/{self.down_name_en}/{self.down_name}{self.begin.strftime('%Y-%m')}.xlsx")
 
@@ -589,13 +590,13 @@ class YunYingShangOrderHistory():
 class LuRuYiChang():
     def __init__(self):
         self.data = foura_data.lururyichang
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/dataMge/listInputEx.xhtml'
         self.down_name = '录入异常清单'
         self.down_name_en = 'luruyichang'
         self.down_suffix = '.xls'
         # 改动15：统一使用settings.resolve_path解析路径
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self):
@@ -620,13 +621,13 @@ class LuRuYiChang():
 class StationAlias():
     def __init__(self):
         self.data = foura_data.station_alias
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/operatorShipMge/listOperator.xhtml'
         self.down_name = '运营商站址关系匹配'
         self.down_name_en = 'stationalias'
         self.down_suffix = '.xls'
         # 改动17：统一使用settings.resolve_path解析路径
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self):
@@ -651,15 +652,15 @@ class StationAlias():
 class FsuJianKong():
     def __init__(self):
         self.data=foura_data.fsu_jiankong
-        self.now = datetime.datetime.now()
+        self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/fsuMge/listFsu.xhtml'
         self.down_name_en='fsu_hafhour'
         self.down_name_en1='fsu_jiankong_5min'
-        self.output_path = settings.resolve_path(f'updatenas/fsu/每半小时fsu离线/{datetime.datetime.now().strftime("%Y%m%d_%H%M")}fsu离线.xlsx')
-        self.temp_path=f'{INDEX}websource/temp_folder_one_day/fsu5分钟.xlsx'
+        self.output_path = settings.resolve_path(f'updatenas/fsu/每半小时fsu离线/{datetime.now().strftime("%Y%m%d_%H%M")}fsu离线.xlsx')
+        self.temp_path=settings.resolve_path('spider/down/temp_folder_one_day/fsu5分钟.xlsx')
     def down(self):
         down_file(self.URL, self.data, self.output_path)
-        if datetime.datetime.now().minute < 30:
+        if datetime.now().minute < 30:
             shutil.copy(self.output_path, self.output_path.replace('每半小时', '每小时'))
         log_downtime(self.down_name_en)
     def down_5min(self):
@@ -674,7 +675,7 @@ class FsuJianKong():
             sql, Base = temp
             pojo_brokentime = Base.classes.fsu_brokentime_log
             pojo_brokentimes = Base.classes.fsu_brokentimes_log
-            now = datetime.datetime.now()
+            now = datetime.now()
             if now.hour == 7:
                 res = sql.query(pojo_brokentimes).all()
                 for log in res:
@@ -694,8 +695,8 @@ class FsuJianKong():
                     log.begin_time = row['离线时间']
                     sql.add(log)
                 else:
-                    begin_time = datetime.datetime.strptime(res.begin_time, '%Y/%m/%d  %H:%M:%S')
-                    begin_time_row = datetime.datetime.strptime(row['离线时间'], '%Y/%m/%d  %H:%M:%S')
+                    begin_time = datetime.strptime(res.begin_time, '%Y/%m/%d  %H:%M:%S')
+                    begin_time_row = datetime.strptime(row['离线时间'], '%Y/%m/%d  %H:%M:%S')
                     if begin_time_row > begin_time:
                         # 次数统计
                         res.begin_time = row['离线时间']
@@ -713,15 +714,15 @@ class AlarmHistoryHbase():
     def __init__(self, year=0, month=0):
         self.data = foura_data.alarm_history_Hbase
         if month != 0:
-            self.now = datetime.datetime.now().replace(year=year, month=month, day=1)
+            self.now = datetime.now().replace(year=year, month=month, day=1)
         else:
-            self.now = datetime.datetime.now()
+            self.now = datetime.now()
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/alarmHisHbaseMge/listHisAlarmHbase.xhtml'
         self.down_name = '历史告警'
         self.down_name_en = 'Hbase'
         self.down_suffix = '.xlsx'
         # 改动19：统一使用settings.resolve_path解析路径
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def df_sql_process(self):
@@ -748,12 +749,12 @@ class AlarmHistoryHbase():
             , '门', '电池供电告警']:
             end = self.now.replace(hour=0, minute=0, second=0)
             if end.day == 1:
-                start = (self.now - datetime.timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0)
+                start = (self.now - timedelta(days=1)).replace(day=1, hour=0, minute=0, second=0)
             else:
                 start = self.now.replace(day=1, hour=0, minute=0, second=0)
             # 日期循环
             while start < end:
-                start_next = (start + datetime.timedelta(days=1))
+                start_next = (start + timedelta(days=1))
                 for key in ['1']:
                     self.data[key]['queryForm:queryalarmName'] = alarm_name
                     self.data[key]['queryForm:firststarttimeInputCurrentDate'] = start.strftime('%m/%Y')
@@ -784,9 +785,9 @@ class Performence():
         def down_by_city(city):
             for key in ['1', '2']:
                 # 当前时间
-                now = datetime.datetime.now()
+                now = datetime.now()
                 # 一天前的时间
-                start_time = now - datetime.timedelta(hours=int(hours))
+                start_time = now - timedelta(hours=int(hours))
 
                 # 格式时间化
                 end_time_input_date = now.strftime("%Y-%m-%d %H:%M")
@@ -836,8 +837,8 @@ class PerformenceBySiteList():
         for i in range(0, len(site_list), page_size):
             chunk = site_list[i:i + page_size]
             for key in ['1', '2']:
-                now = datetime.datetime.now()
-                start_time = now - datetime.timedelta(minutes=timedelta)
+                now = datetime.now()
+                start_time = now - timedelta(minutes=timedelta)
 
                 def format_datetime(dt):
                     return dt.strftime("%Y-%m-%d %H:%M"), dt.strftime("%m/%Y")
@@ -886,8 +887,8 @@ class SerchPerformence():
             javax = html.find('input', id='javax.faces.ViewState')['value']
             into_data = self.data['2']
             into_data['javax.faces.ViewState'] = javax
-            now = datetime.datetime.now()
-            before = now - datetime.timedelta(days=1)
+            now = datetime.now()
+            before = now - timedelta(days=1)
 
             into_data['queryForm:queryStationId'] = f'{stationid}'
             into_data['queryForm:queryStationIdShow'] = f'{stationid}...'
@@ -911,6 +912,137 @@ class SerchPerformence():
             return signal
 
 """
+爬取历史性能查询，路径：运行监控-历史性能查询-查询
+"""
+class HisPerformence():
+    def __init__(self):
+        self.data = foura_data.his_performence
+        self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/performanceMge/perfdata.xhtml'
+
+    def _get_headers(self):
+        return {
+            'Host': 'omms.chinatowercom.cn:9000',
+            'Origin': 'http://omms.chinatowercom.cn:9000',
+            'Referer': self.URL,
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36'
+        }
+
+    def _get_viewstate(self, html):
+        soup = BeautifulSoup(html, 'html.parser')
+        javax = soup.find('input', id='javax.faces.ViewState')
+        return javax['value']
+
+    def _parse_devices(self, html, station_name):
+        """解析所有设备，返回 {后缀: (did, 完整设备名, 数字)} 字典，相同后缀取编号最小"""
+        devices = {}
+        pattern = r'id="(\d+)"[^>]*name="rDevice"[^>]*value="([^"]+)"'
+        matches = re.findall(pattern, html)
+
+        for did, full_name in matches:
+            if not full_name.startswith(station_name + '/'):
+                continue
+
+            suffix_part = full_name[len(station_name) + 1:]
+            match = re.match(r'(.+?)(\d+)$', suffix_part)
+            if match:
+                suffix, num_str = match.group(1), match.group(2)
+                num = int(num_str)
+            else:
+                suffix = suffix_part
+                num = 0
+
+            if suffix not in devices or num < devices[suffix][2]:
+                devices[suffix] = (did, full_name, num)
+
+        return devices
+
+    def _query_data(self, s, headers, cookies, javax, aid, name, device_name, did, mid, start_time, end_time):
+        """查询设备的历史数据，返回 [(时间, 实测值), ...] 列表"""
+        d3 = self.data['FINAL'].copy()
+        d3.update({
+            'javax.faces.ViewState': javax,
+            'queryFormB:aid': aid,
+            'queryFormB:siteNameId': name,
+            'queryFormB:deviceName': device_name,
+            'queryFormB:did': did,
+            'queryFormB:mid': mid,
+            'queryFormB:starttimeInputDate': start_time,
+            'queryFormB:starttimeInputCurrentDate': start_time[5:7] + '/' + start_time[:4],
+            'queryFormB:endtimeInputDate': end_time,
+            'queryFormB:endtimeInputCurrentDate': end_time[5:7] + '/' + end_time[:4]
+        })
+        r3 = s.post(self.URL, headers=headers, data=d3, cookies=cookies)
+
+        results = []
+        soup = BeautifulSoup(r3.text, 'html.parser')
+        tbody = soup.find('tbody', id='listFormB:list:tb')
+        if tbody:
+            rows = tbody.find_all('tr')
+            for row in rows:
+                cells = row.find_all('td')
+                if len(cells) >= 15:
+                    time_val = cells[13].text.strip()
+                    measure_val = cells[14].text.strip()
+                    results.append((time_val, measure_val))
+        return results
+
+    def main(self, name, device_mid_dict, hours=2, cookie_user=1):
+        """
+        入参：
+            name: 站址名
+            device_mid_dict: {'后缀': ['mid1', 'mid2', ...], ...}
+            hours: 查询过去几小时，默认2
+            cookie_user: cookie用户标识
+        返回：
+            {设备完整名: {mid: [(时间, 实测值), ...], ...}, ...}
+        """
+        s = requests.Session()
+        headers = self._get_headers()
+        cookies = get_foura_cookie(cookie_user)
+        now = datetime.now()
+        past = now - datetime(hours=hours)
+        start_time = past.strftime('%Y-%m-%d %H:%M')
+        end_time = now.strftime('%Y-%m-%d %H:%M')
+
+        r0 = s.post(self.URL, headers=headers, cookies=cookies)
+        javax = self._get_viewstate(r0.text)
+
+        d1 = self.data['1'].copy()
+        d1['stationListFormB:nameText'] = name
+        d1['javax.faces.ViewState'] = javax
+        r1 = s.post(self.URL, headers=headers, data=d1, cookies=cookies)
+        aid = re.search(r'id="([^"]+)"[^>]*name="selectFlagB"[^>]*value="%s"' % re.escape(name), r1.text)
+        if not aid:
+            aid = re.search(r'id="([^"]+)"[^>]*name="selectFlagB"', r1.text)
+        aid = aid.group(1)
+
+        d2 = self.data['2'].copy()
+        d2['queryForm2B:aid'] = aid
+        d2['javax.faces.ViewState'] = javax
+        r2 = s.post(self.URL, headers=headers, data=d2, cookies=cookies)
+
+        all_devices = self._parse_devices(r2.text, name)
+
+        results = {}
+        for suffix, mid_list in device_mid_dict.items():
+            # 模糊匹配设备
+            matched = None
+            for dev_suffix, (did, full_name, num) in all_devices.items():
+                if suffix in dev_suffix:
+                    matched = (did, full_name)
+                    break
+
+            if matched:
+                did, full_name = matched
+                device_results = {}
+                for mid in mid_list:
+                    data_list = self._query_data(s, headers, cookies, javax, aid, name, full_name, did, mid, start_time,
+                                                 end_time)
+                    device_results[mid] = data_list
+                results[full_name] = device_results
+        return results
+
+"""
 爬取当前活动告警，从数据库拿，字段不完全
 """
 class AlarmNow():
@@ -928,7 +1060,7 @@ class AlarmNow():
             "离首次告警时间是否超过24小时", "信号量说明",
             "信号量解释", "任务状态", "站址来源", "确认原因", "信号量"
         ]
-        self.path_csv = r'F:\newtowerV2\message\battery_life\xls\活动告警.csv'
+        self.path_csv = settings.resolve_path('message/battery_life/xls/活动告警.csv')
 
     def main(self):
         res = requests.get(r'http://clound.gxtower.cn:3980/tt/get_alarm')
@@ -957,12 +1089,12 @@ class AlarmNow():
                 sql.add(pojo(**row.to_dict()))
             sql.commit()
         # 南分备份需求
-        if datetime.datetime.now().minute >= 40:
-            backup_dir = r'F:\newtowerV2\message\nanfen_overtime\alarm_backup'
+        if datetime.now().minute >= 40:
+            backup_dir = settings.resolve_path('message/nanfen_overtime/alarm_backup')
             # 改动21：增加备份目录创建
             if not os.path.exists(backup_dir):
                 os.makedirs(backup_dir)
-            current_time = datetime.datetime.now().strftime("%Y%m%d%H")
+            current_time = datetime.now().strftime("%Y%m%d%H")
             new_filename = f'{current_time}.xlsx'
             target_path = os.path.join(backup_dir, new_filename)
             df.to_excel(target_path, index=False)
@@ -978,7 +1110,7 @@ class AlarmNow4AByCity():
         self.down_name = '活动告警'
         self.down_name_en = 'alarm_now'
         self.down_suffix = '.xls'
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
     def down(self):
         down_list = ['0099977', '0099978', '0099979', '0099980', '0099981', '0099982', '0099983', '0099984', '0099985',
@@ -1014,13 +1146,13 @@ class FaultMonitoring():
     def __init__(self):
         self.data = foura_data.fault_monitoring
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/faultAlarmMge/listFaultActive.xhtml'
-        self.now = datetime.datetime.now()
-        self.start_date_str = datetime.datetime(self.now.year, self.now.month, 1, 0, 0)
-        self.end_date_str = datetime.datetime(self.now.year, self.now.month, self.now.day, 0, 0)
+        self.now = datetime.now()
+        self.start_date_str = datetime(self.now.year, self.now.month, 1, 0, 0)
+        self.end_date_str = datetime(self.now.year, self.now.month, self.now.day, 0, 0)
         self.down_name = '故障监控'
         self.down_name_en = 'fault_monitoring'
         self.down_suffix = '.xls'
-        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
     def down(self):
@@ -1058,6 +1190,80 @@ class FaultMonitoring():
             log_downtime(self.down_name_en)
         else:
             raise FileNotFoundError("文件下载不全，当前仅下载了 {} 个文件".format(len(os.listdir(self.folder_temp))))
+
+"""
+爬取故障监控，路径：运行监控-历史性能查询-移动/联通/电信电量存量
+"""
+class BatteryLevel():
+    def __init__(self):
+        self.db_fields = ['站址', '设备', '信号量', '实测值', '时间', '备注']
+        self.station_list = [
+            '南宁市金融大厦O', '南宁市幼师大厦O', '西乡塘区五菱桂花车辆有限公司',
+            '西乡塘区相思湖西路监控杆', 'GX南宁越秀龙盘小区灯塔', '南宁市官桥村O',
+            '南宁市建华小学O', '南宁市圣诺宾馆O', '邕宁区中和乡方村南',
+            'GX南宁邕宁中和那烈', '桂林市锁厂O-DA', '兴安县志玲路国税局O-DB',
+            '桂林市顶新酒店O-DA', '恭城三江十八岭村O-DC', '灵川定江郑家村O-DB',
+            '临桂新城吾悦华府小区南侧山坡（搬迁）'
+        ]
+        self.all_data = []
+        self.device_mid_dict = {
+            "开关电源": {
+                "0406136001": "移动租户电量",
+                "0406138001": "联通租户电量",
+                "0406140001": "电信租户电量"
+            },
+            "分路计量设备": {
+                "0445102001": "移动租户电量",
+                "0445104001": "联通租户电量",
+                "0445106001": "电信租户电量"
+            }
+        }
+
+    def down(self):
+        for station in self.station_list:
+            result = HisPerformence().main(name=station, device_mid_dict=self._flatten_mid(), hours=2)
+            has_data = False
+            for device, mid_data in result.items():
+                suffix = next((k for k in self.device_mid_dict if k in device), None)
+                if not suffix:
+                    continue
+                for mid, remark in self.device_mid_dict[suffix].items():
+                    data_list = mid_data.get(mid, [])
+                    if data_list:
+                        has_data = True
+                        for time, value in data_list:
+                            self.all_data.append({
+                                '站址': station, '设备': device, '信号量': mid,
+                                '实测值': value if value else None, '时间': time, '备注': remark
+                            })
+                    else:
+                        has_data = True
+                        self.all_data.append({
+                            '站址': station, '设备': device, '信号量': mid,
+                            '实测值': None, '时间': datetime.now(), '备注': remark
+                        })
+            if not has_data:
+                self.all_data.append({
+                    '站址': station, '设备': None, '信号量': None,
+                    '实测值': None, '时间': datetime.now(), '备注': None
+                })
+
+    def _flatten_mid(self):
+        return {k: list(v.keys()) for k, v in self.device_mid_dict.items()}
+
+    def df_process(self):
+        df = pd.DataFrame(self.all_data)
+        with sql_orm().session_scope() as temp:
+            sql, Base = temp
+            pojo = Base.classes.battery_level
+            for _, row in df.iterrows():
+                sql.add(pojo(**row.to_dict()))
+            sql.commit()
+
+    def main(self):
+        self.down()
+        self.df_process()
+
 
 if __name__ == '__main__':
     # FsuChaXun().main()

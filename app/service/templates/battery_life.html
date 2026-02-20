@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓄电池续航能力库</title>
+    <!-- 引入Tailwind CSS（使用精简版） -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome（使用精简CDN） -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+    <!-- 优化Tailwind配置：减少不必要的扩展 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        accent: '#722ED1',
+                        neutral: '#F5F7FA',
+                        'neutral-dark': '#4E5969',
+                        success: '#00B42A',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            },
+            // 禁用未使用的Tailwind功能
+            corePlugins: {
+                backdropBlur: true,
+                backdropFilter: true,
+            }
+        }
+    </script>
+
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .table-shadow {
+                box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05); /* 减轻阴影 */
+            }
+            .btn-hover {
+                @apply transition-all duration-200 hover:shadow-md transform hover:-translate-y-0.5; /* 缩短过渡时间 */
+            }
+            .header-gradient {
+                background: linear-gradient(135deg, #165DFF 0%, #722ED1 100%);
+                background-attachment: fixed; /* 优化渐变性能 */
+            }
+            .table-row-animate {
+                @apply transition-colors duration-150 hover:bg-primary/5; /* 仅保留颜色过渡 */
+            }
+            .search-input-focus {
+                @apply focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary;
+            }
+            .card-hover {
+                @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+            }
+        }
+    </style>
+
+    <!-- 关键CSS内联，减少阻塞 -->
+    <style>
+        /* 基础样式优化 */
+        body {
+            font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* 优化滚动性能 */
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 2rem;
+        }
+        /* 表格优化 */
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        /* 减少重绘 */
+        .no-transition {
+            transition: none !important;
+        }
+    </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-800 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header class="header-gradient text-white shadow-md sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-battery-full text-2xl" aria-hidden="true"></i>
+                <h1 class="text-[clamp(1.3rem,3vw,1.8rem)] font-bold">蓄电池续航能力库</h1>
+            </div>
+
+            <div class="hidden md:flex space-x-3">
+                <button id="downloadBtn" onclick="downloadExcel()" class="bg-white text-primary px-3 py-2 rounded-lg font-medium btn-hover flex items-center text-sm">
+                    <i class="fa fa-download mr-2" aria-hidden="true"></i>
+                    下载Excel
+                </button>
+                <button id="cityBtn" onclick="city()" class="bg-white/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg font-medium btn-hover flex items-center text-sm">
+                    <i class="fa fa-map-marker mr-2" aria-hidden="true"></i>
+                    地市维度
+                </button>
+                <button id="ruleBtn" onclick="openModal()" class="bg-white/20 backdrop-blur-sm text-white px-3 py-2 rounded-lg font-medium btn-hover flex items-center text-sm">
+                    <i class="fa fa-info-circle mr-2" aria-hidden="true"></i>
+                    统计规则
+                </button>
+            </div>
+
+            <!-- 移动端菜单按钮 -->
+            <button id="mobileMenuBtn" class="md:hidden text-white text-xl">
+                <i class="fa fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- 移动端菜单 -->
+        <div id="mobileMenu" class="md:hidden hidden bg-white/10 backdrop-blur-md px-4 py-3">
+            <div class="flex flex-col space-y-3">
+                <button id="downloadBtnMobile" onclick="downloadExcel()" class="bg-white text-primary px-4 py-2 rounded-lg font-medium btn-hover flex items-center justify-center">
+                    <i class="fa fa-download mr-2" aria-hidden="true"></i>
+                    下载Excel
+                </button>
+                <button id="cityBtnMobile" onclick="city()" class="bg-white/20 text-white px-4 py-2 rounded-lg font-medium btn-hover flex items-center justify-center">
+                    <i class="fa fa-map-marker mr-2" aria-hidden="true"></i>
+                    地市维度
+                </button>
+                <button id="ruleBtnMobile" onclick="openModal()" class="bg-white/20 text-white px-4 py-2 rounded-lg font-medium btn-hover flex items-center justify-center">
+                    <i class="fa fa-info-circle mr-2" aria-hidden="true"></i>
+                    统计规则
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-6">
+        <!-- 搜索框 -->
+        <div class="bg-white rounded-xl p-5 shadow-sm mb-6 card-hover">
+            <form action="{{ url_for('battery_life') }}" method="get" class="flex flex-col sm:flex-row gap-3 items-center">
+                <div class="relative flex-grow">
+                    <input
+                        type="text"
+                        name="search"
+                        placeholder="请输入关键词搜索（支持站址名称、编码、市、区、续航时长等）"
+                        class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg search-input-focus transition-all"
+                        value="{{ search_keyword if search_keyword else '' }}"
+                    >
+                    <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true"></i>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-primary text-white px-5 py-2.5 rounded-lg font-medium btn-hover flex items-center">
+                        <i class="fa fa-search mr-2" aria-hidden="true"></i>
+                        搜索
+                    </button>
+                </div>
+            </form>
+
+            {% if search_keyword %}
+                <div class="mt-3 text-sm text-neutral-dark">
+                    <span>搜索关键词：</span>
+                    <span class="text-primary font-medium">"{{ search_keyword }}"</span>
+                    <span>，共找到 {{ total }} 条匹配记录</span>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- 数据概览卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <!-- 总记录数 -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border-l-4 border-primary card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-neutral-dark text-sm">总记录数</p>
+                        <h3 class="text-3xl font-bold mt-1">{{ total }}</h3>
+                    </div>
+                    <div class="bg-primary/10 p-2.5 rounded-lg">
+                        <i class="fa fa-database text-primary text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 平均续航时长 -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border-l-4 border-secondary card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-neutral-dark text-sm">平均续航时长</p>
+                        <h3 class="text-3xl font-bold mt-1">{{ average_duration }} 小时</h3>
+                    </div>
+                    <div class="bg-secondary/10 p-2.5 rounded-lg">
+                        <i class="fa fa-clock-o text-secondary text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 异常设备数 -->
+            <div class="bg-white rounded-xl p-5 shadow-sm border-l-4 border-warning card-hover">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-neutral-dark text-sm">异常设备数</p>
+                        <h3 class="text-3xl font-bold mt-1">{{ abnormal_count }}</h3>
+                    </div>
+                    <div class="bg-warning/10 p-2.5 rounded-lg">
+                        <i class="fa fa-exclamation-triangle text-warning text-xl" aria-hidden="true"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 表格容器 -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden table-shadow">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="bg-neutral text-neutral-dark">
+                            {% for key in data[0].keys() if data %}
+                            <th class="px-4 py-3 text-left font-semibold whitespace-nowrap text-sm">
+                                <div class="flex items-center">
+                                    {{ key }}
+                                    <i class="fa fa-sort ml-2 text-gray-400" aria-hidden="true"></i>
+                                </div>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if data %}
+                            {% for item in data %}
+                            <tr class="border-t border-gray-100 table-row-animate">
+                                {% for key, value in item.items() %}
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    <!-- 只对“FSU状态”等可能包含“异常”/“正常”的字段进行判断 -->
+                                    {% if key == "FSU状态" %}
+                                        {% if value and '异常' in value|string %}
+                                            <span class="bg-danger/10 text-danger px-2 py-1 rounded-full text-xs font-medium">{{ value }}</span>
+                                        {% elif value and '正常' in value|string %}
+                                            <span class="bg-success/10 text-success px-2 py-1 rounded-full text-xs font-medium">{{ value }}</span>
+                                        {% else %}
+                                            {{ value if value is not none else '-' }}
+                                        {% endif %}
+                                    {% else %}
+                                        <!-- 其他字段（如数值型）直接显示 -->
+                                        {{ value if value is not none else '-' }}
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="{{ data[0].keys()|length if data else 16 }}" class="px-6 py-10 text-center text-neutral-dark">
+                                    <div class="flex flex-col items-center">
+                                        <i class="fa fa-search text-gray-300 text-3xl mb-3" aria-hidden="true"></i>
+                                        <p class="text-base">未找到匹配的数据</p>
+                                        {% if search_keyword %}
+                                            <p class="text-sm mt-2 text-gray-500">建议尝试其他关键词</p>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 分页控制 -->
+            <div class="px-4 py-3 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3 text-sm">
+                <div class="text-neutral-dark">
+                    当前 {{ page * per_page - per_page + 1 if data else 0 }}-{{ page * per_page if page * per_page < total else total }} 条，共 {{ total }} 条，{{ total_pages }} 页
+                </div>
+
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    {% if page > 1 %}
+                        {% if search_keyword %}
+                            <a href="{{ url_for('battery_life', page=page-1, search=search_keyword) }}" class="px-3 py-1.5 rounded-lg border border-gray-200 text-neutral-dark hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200 text-xs sm:text-sm">
+                                <i class="fa fa-chevron-left mr-1" aria-hidden="true"></i> 上一页
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('battery_life', page=page-1) }}" class="px-3 py-1.5 rounded-lg border border-gray-200 text-neutral-dark hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200 text-xs sm:text-sm">
+                                <i class="fa fa-chevron-left mr-1" aria-hidden="true"></i> 上一页
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <button disabled class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed text-xs sm:text-sm">
+                            <i class="fa fa-chevron-left mr-1" aria-hidden="true"></i> 上一页
+                        </button>
+                    {% endif %}
+
+                    <!-- 页码输入框 -->
+                    <div class="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+                        <input
+                            type="number"
+                            id="pageInput"
+                            value="{{ page }}"
+                            min="1"
+                            max="{{ total_pages if total_pages > 0 else 1 }}"
+                            class="w-16 px-2 py-1.5 text-center focus:outline-none focus:ring-1 focus:ring-primary text-xs sm:text-sm"
+                            onkeydown="if(event.key === 'Enter') { goToPage('{{ search_keyword }}') }"
+                        >
+                        <span class="text-neutral-dark px-1.5 text-xs">/{{ total_pages if total_pages > 0 else 1 }}</span>
+                    </div>
+
+                    {% if (total > (page * per_page)) %}
+                        {% if search_keyword %}
+                            <a href="{{ url_for('battery_life', page=page+1, search=search_keyword) }}" class="px-3 py-1.5 rounded-lg border border-gray-200 text-neutral-dark hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200 text-xs sm:text-sm">
+                                下一页 <i class="fa fa-chevron-right ml-1" aria-hidden="true"></i>
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('battery_life', page=page+1) }}" class="px-3 py-1.5 rounded-lg border border-gray-200 text-neutral-dark hover:bg-primary hover:text-white hover:border-primary transition-colors duration-200 text-xs sm:text-sm">
+                                下一页 <i class="fa fa-chevron-right ml-1" aria-hidden="true"></i>
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <button disabled class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-400 cursor-not-allowed text-xs sm:text-sm">
+                            下一页 <i class="fa fa-chevron-right ml-1" aria-hidden="true"></i>
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 mt-8">
+        <div class="container mx-auto px-4 py-4 text-center text-neutral-dark text-sm">
+            <p>©2024 蓄电池续航能力管理系统 | 数据更新时间：{{ update_time if update_time else '最新' }}</p>
+        </div>
+    </footer>
+
+    <!-- 统计规则模态框 -->
+    <div id="ruleModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl max-w-2xl w-full mx-4 shadow-xl transform transition-all duration-200 scale-95 opacity-0" id="modalContent">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">统计规则说明</h3>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                    <i class="fa fa-times text-lg" aria-hidden="true"></i>
+                </button>
+            </div>
+            <div class="p-5">
+                <ul class="space-y-3">
+                    <li class="flex">
+                        <div class="flex-shrink-0 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                            <i class="fa fa-bolt text-primary text-xs" aria-hidden="true"></i>
+                        </div>
+                        <p class="ml-3 text-gray-700 text-sm">运维停电告警历时：续航时长=实时性能直流电压消失时间-停电告警发生时间</p>
+                    </li>
+                    <li class="flex">
+                        <div class="flex-shrink-0 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                            <i class="fa fa-file-text-o text-primary text-xs" aria-hidden="true"></i>
+                        </div>
+                        <p class="ml-3 text-gray-700 text-sm">运营商接口工单：续航时长=运营商工单派发时间-停电告警发生时间</p>
+                    </li>
+                    <li class="flex">
+                        <div class="flex-shrink-0 h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                            <i class="fa fa-power-off text-primary text-xs" aria-hidden="true"></i>
+                        </div>
+                        <p class="ml-3 text-gray-700 text-sm">运维一级二级低压脱离：续航时长=退服告警发生时间-停电告警发生时间</p>
+                    </li>
+                </ul>
+            </div>
+            <div class="p-3 bg-gray-50 rounded-b-xl flex justify-end">
+                <button id="confirmModal" class="px-4 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-200 text-sm">
+                    我知道了
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 延迟加载非关键JS
+        document.addEventListener('DOMContentLoaded', function() {
+            // 移动端菜单切换
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const mobileMenu = document.getElementById('mobileMenu');
+
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // 模态框控制
+            const ruleModal = document.getElementById('ruleModal');
+            const modalContent = document.getElementById('modalContent');
+            const closeModal = document.getElementById('closeModal');
+            const confirmModal = document.getElementById('confirmModal');
+
+            window.openModal = function() {
+                ruleModal.classList.remove('hidden');
+                // 触发动画
+                setTimeout(() => {
+                    modalContent.classList.remove('scale-95', 'opacity-0');
+                    modalContent.classList.add('scale-100', 'opacity-100');
+                }, 50);
+            }
+
+            function closeModalFunc() {
+                modalContent.classList.remove('scale-100', 'opacity-100');
+                modalContent.classList.add('scale-95', 'opacity-0');
+                // 等待动画完成后隐藏
+                setTimeout(() => {
+                    ruleModal.classList.add('hidden');
+                }, 200);
+            }
+
+            closeModal.addEventListener('click', closeModalFunc);
+            confirmModal.addEventListener('click', closeModalFunc);
+
+            // 点击模态框外部关闭
+            ruleModal.addEventListener('click', (e) => {
+                if (e.target === ruleModal) {
+                    closeModalFunc();
+                }
+            });
+
+            // 下载Excel函数
+            window.downloadExcel = function() {
+                // 添加加载状态
+                const downloadBtn = document.getElementById('downloadBtn');
+                const downloadBtnMobile = document.getElementById('downloadBtnMobile');
+
+                const originalText = downloadBtn ? downloadBtn.innerHTML : '';
+                const originalTextMobile = downloadBtnMobile ? downloadBtnMobile.innerHTML : '';
+
+                if (downloadBtn) {
+                    downloadBtn.innerHTML = '<i class="fa fa-spinner fa-spin mr-2" aria-hidden="true"></i> 下载中...';
+                    downloadBtn.disabled = true;
+                }
+                if (downloadBtnMobile) {
+                    downloadBtnMobile.innerHTML = '<i class="fa fa-spinner fa-spin mr-2" aria-hidden="true"></i> 下载中...';
+                    downloadBtnMobile.disabled = true;
+                }
+
+                // 模拟下载过程
+                setTimeout(() => {
+                    // 保留原搜索参数
+                    const searchKeyword = '{{ search_keyword }}';
+                    let downloadUrl = '/battery_life_download_excel';
+                    if (searchKeyword) {
+                        downloadUrl += '?search=' + encodeURIComponent(searchKeyword);
+                    }
+                    window.location.href = downloadUrl;
+
+                    // 恢复按钮状态
+                    setTimeout(() => {
+                        if (downloadBtn) {
+                            downloadBtn.innerHTML = originalText;
+                            downloadBtn.disabled = false;
+                        }
+                        if (downloadBtnMobile) {
+                            downloadBtnMobile.innerHTML = originalTextMobile;
+                            downloadBtnMobile.disabled = false;
+                        }
+                    }, 800);
+                }, 500);
+            }
+
+            // 地市维度跳转
+            window.city = function() {
+                // 保留原搜索参数
+                const searchKeyword = '{{ search_keyword }}';
+                let cityUrl = '/battery_life_city';
+                if (searchKeyword) {
+                    cityUrl += '?search=' + encodeURIComponent(searchKeyword);
+                }
+                window.location.href = cityUrl;
+            }
+
+            // 页码跳转功能（保留查询参数）
+            window.goToPage = function(searchKeyword) {
+                const pageInput = document.getElementById('pageInput');
+                const totalPages = {{ total_pages if total_pages > 0 else 1 }};
+                let page = parseInt(pageInput.value, 10);
+
+                // 验证页码有效性
+                if (isNaN(page) || page < 1) {
+                    page = 1;
+                } else if (page > totalPages) {
+                    page = totalPages;
+                }
+
+                // 更新输入框显示的页码
+                pageInput.value = page;
+
+                // 构建跳转URL，保留查询参数
+                let url = "{{ url_for('battery_life', page='PAGE_PLACEHOLDER') }}".replace('PAGE_PLACEHOLDER', page);
+                if (searchKeyword) {
+                    url += "?search=" + encodeURIComponent(searchKeyword);
+                }
+
+                // 跳转到指定页码
+                window.location.href = url;
+            }
+
+            // 为输入框添加失去焦点时的跳转处理
+            document.getElementById('pageInput').addEventListener('blur', function() {
+                goToPage('{{ search_keyword }}');
+            });
+
+            // 处理空数据时的表格显示
+            const data = {{ data|tojson }};
+            if (!data || data.length === 0) {
+                const tableHeaders = document.querySelector('thead tr');
+                if (tableHeaders) {
+                    tableHeaders.style.display = 'none';
+                }
+            }
+
+            // 优化表格滚动性能
+            const tableContainer = document.querySelector('.overflow-x-auto');
+            if (tableContainer) {
+                tableContainer.style.willChange = 'scroll-position';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dynamic Table from Server Data</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif; /* 设置字体 */
+        }
+        h1 {
+            text-align: center; /* 标题居中 */
+            padding: 20px 0; /* 标题上下边距 */
+        }
+        table {
+            width: 100%; /* 表格宽度占满整个页面 */
+            border-collapse: collapse;
+            margin: 0 auto; /* 表格居中显示 */
+        }
+        th, td {
+            text-align: center; /* 单元格文字居中对齐 */
+            vertical-align: middle; /* 单元格文字垂直居中对齐 */
+            border: 1px solid #ddd; /* 单元格边框 */
+            padding: 8px; /* 单元格内边距 */
+            word-wrap: break-word; /* 单元格文字可以换行 */
+        }
+        th {
+            background-color: #f2f2f2; /* 表头背景色 */
+        }
+        thead tr {
+            display: flex; /* 使表头水平展开 */
+            flex-wrap: nowrap; /* 表头不换行 */
+        }
+        thead th {
+            flex: 1; /* 表头平分空间 */
+            min-width: 100px; /* 表头最小宽度 */
+        }
+        tbody tr {
+            display: flex;
+            flex-wrap: wrap; /* 数据行可以换行 */
+        }
+        tbody td {
+            flex: 1; /* 数据单元格平分空间 */
+            min-width: 100px; /* 数据单元格最小宽度 */
+        }
+        #downloadBtn {
+            position: absolute;
+            top: 20px; /* 距离顶部20px */
+            left: 20px; /* 距离左边20px */
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>蓄电池续航能力库</h1>
+    <table>
+        <thead>
+            <tr>
+                {% for key in data[0].keys() %}
+                <th>{{ key }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in data %}
+            <tr>
+                {% for value in item.values() %}
+                <td>{{ value }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

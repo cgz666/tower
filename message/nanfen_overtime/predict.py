@@ -1,15 +1,15 @@
 import pandas as pd
-from config import INDEX
-from utils.send_ding_msg import dingmsg
-from utils.sql_utils import sql_orm
+from core.utils.send_ding_msg import dingmsg
+from core.sql import sql_orm
 from sqlalchemy import or_, and_
 from sqlalchemy import text
-from websource.spider.down_foura.foura_spider_universal import alarm_now_4A_by_city
+from core.config import settings
+from spider.script.down_foura.foura_spider_universal import AlarmNow4AByCity
 
 
 class predict():
     def __init__(self):
-        self.alarm_path=f"{INDEX}message/nanfen_overtime/xls/活动告警.xls"
+        self.alarm_path=settings.resolve_path(f"message/nanfen_overtime/xls/活动告警.xls")
 
     def send_alarm_msg(self, df, msg_type, send_list=None):
         """统一处理告警消息发送"""
@@ -121,7 +121,7 @@ class predict():
         self.send_alarm_msg(df_highlevel, 'highlevel_jiaoliu')
 
     def run_thread(self):
-        alarm_now_4A_by_city().down("0099977",self.alarm_path)
+        AlarmNow4AByCity().down("0099977",self.alarm_path)
         with sql_orm(database='nanfen').session_scope() as self.temp:
             self.process()
 

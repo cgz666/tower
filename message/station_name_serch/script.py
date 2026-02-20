@@ -1,14 +1,12 @@
 from message.station_name_serch import down_config as CONFIG
-from utils.sql_utils import sql_orm
+from core.sql import sql_orm
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pandas as pd
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from config import INDEX
-
-
+from core.config import settings
 
 def main():
     def down(site_name, serch_name, serch_id, download_dir):
@@ -264,7 +262,7 @@ def main():
             print(1)
 
         # 保存更新后的 df 到新的 Excel 文件
-        df.to_excel(r'F:\newtowerV2\message\station_name_serch\更新后的查询结果.xlsx', index=False)
+        df.to_excel(settings.resolve_path(r'message\station_name_serch\更新后的查询结果.xlsx', index=False))
 
     # 读取站址名称清单
     serch_dict = {
@@ -279,8 +277,8 @@ def main():
         "计量型新业务租户1#电流": "0445110001",
         "计量型新业务租户1#电量": "0445111001"
     }
-    df = pd.read_excel(r'F:\newtowerV2\message\station_name_serch\站址名称清单.xlsx', dtype=str)
-    download_dir = r'F:\newtowerV2\message\station_name_serch\xls'
+    df = pd.read_excel(settings.resolve_path(r'message\station_name_serch\站址名称清单.xlsx', dtype=str))
+    download_dir = settings.resolve_path(r'message\station_name_serch\xls')
 
     # # 创建线程池并发执行下载任务
     with ThreadPoolExecutor(max_workers=5) as executor:

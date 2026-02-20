@@ -5,20 +5,19 @@ import datetime
 import pandas as pd
 import openpyxl
 from sqlalchemy import or_,and_
-from config import INDEX,SPIDER_PATH,TEMP_PATH_ONE_MONTH
-from utils import excel_operate
-
+# from config import INDEX,SPIDER_PATH,TEMP_PATH_ONE_MONTH
+from core.utils import excel_operate
+from core.config import settings
 from openpyxl.styles import Border, Side,Alignment, PatternFill
-from utils.sql_utils import sql_orm
-from utils.send_ding_msg import dingmsg
-from config import INDEX
-from websource.spider.down_foura.foura_spider_universal import serch_performence
-
+from core.sql import sql_orm
+from core.utils.send_ding_msg import dingmsg
+from spider.script.down_foura.foura_spider_universal import SerchPerformence
+TEMP_PATH_ONE_MONTH = settings.resolve_path("spider/down/temp_folder_one_month")
 class predict_dc():
     def __init__(self):
         self.time_stamp=datetime.datetime.now().strftime('%Y%m%d%H%M')
-        self.folder=f'{INDEX}message/nanfen_overtime/xls_dc'
-        self.down_path= f"{INDEX}message/battery_life/xls/活动告警.csv"
+        self.folder=settings.resolve_path('message/nanfen_overtime/xls_dc')
+        self.down_path= settings.resolve_path("message/battery_life/xls/活动告警.csv")
         self.path_backup = os.path.join(TEMP_PATH_ONE_MONTH,f'{self.time_stamp}.xlsx')
         self.path_picture_xlsx = os.path.join(self.folder,'picture.xlsx')
 
@@ -52,8 +51,7 @@ class predict_dc():
 
 
     def add_DC(self):
-        sitelist = pd.read_csv(f'{SPIDER_PATH}station\站址信息.csv', usecols=['运维ID', '所属运营商','区县（行政区划）'],dtype=str).rename(columns={'运维ID': '站址运维ID'})
-
+        sitelist = pd.read_csv(settings.resolve_path('spider\down\station\站址信息.csv', usecols=['运维ID', '所属运营商','区县（行政区划）'],dtype=str).rename(columns={'运维ID': '站址运维ID'}))
         alarmlist = pd.read_csv(self.down_path, usecols=['市','站址保障等级', '站址名称', '站址运维ID','告警名称', '告警历时(分钟)','设备告警开始时间','告警详情'],dtype=str)
         alarmlist=alarmlist.loc[alarmlist['市']=='南宁市分公司']
         # 区分核心告警和辅助告警
@@ -79,7 +77,7 @@ class predict_dc():
             merge = merge.sort_values(['告警历时(分钟)'], ascending=[False])
             if i==0:
               for index, row in merge.iterrows():
-                    merge.loc[index, '直流电压'] = serch_performence().serch_performence_by_id(row['站址运维ID'],'0406111001')
+                    merge.loc[index, '直流电压'] = SerchPerformence().serch_performence_by_id(row['站址运维ID'],'0406111001')
 
             merge = merge.drop(labels='站址运维ID', axis=1)
             merge = merge.sort_values(['区县', '告警历时(分钟)'], ascending=[True, False])

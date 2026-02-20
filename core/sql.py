@@ -6,6 +6,7 @@ import threading
 import pandas as pd
 from core.config import settings
 import random
+
 class sql_orm():
     def __init__(self,DB_URL=settings.db_url):
         self.engine = create_engine(**DB_URL,query_cache_size=0)

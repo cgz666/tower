@@ -3,12 +3,11 @@ import os
 import shutil
 from dataclasses import dataclass
 from typing import Dict, List, Optional
-
 import pandas as pd
-from config import INDEX
-from utils.excel_operate import xlsxtocsv
-from utils.retry_wrapper import requests_post
-from utils.sql_utils import sql_orm
+from core.utils.excel_operate import xlsxtocsv
+from core.utils.retry_wrapper import requests_post
+from core.sql import sql_orm
+from core.config import settings
 
 
 @dataclass
@@ -36,7 +35,7 @@ class Wechat360SearchUpdate:
     }
 
     def __init__(self):
-        self.move_path = os.path.join(INDEX, 'message/wechat_360_serch/xls/')
+        self.move_path = settings.resolve_path('message/wechat_360_serch/xls')
         self.file_times = {key: '' for key in self.FILE_CONFIGS}
         self.latest_files = {}
 

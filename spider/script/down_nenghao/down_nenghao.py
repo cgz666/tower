@@ -2,6 +2,7 @@ from core.utils.retry_wrapper import requests_get
 from spider.script.down_nenghao import config_equiment_constitution as CONFIG,config_lixian as CONFIG2
 from core.sql import sql_orm
 import datetime
+from core.config import settings
 # 能耗系统设备情况下载
 #导出路径
 #设备管理：4A-能耗系统-远程抄表-设备管理-缴费类型（缴费电表）-查询-Excel导出（设备+电量）
@@ -9,7 +10,7 @@ import datetime
 # 报错如下大概率是atrust 0信任掉了，重新登录
 # requests.exceptions.ConnectionError: HTTPConnectionPool(host='chntenergy.chinatowercom.cn', port=50080): Max retries exceeded with url:
 def down_equiment_consitution():
-    down_path=f'{SPIDER_PATH}nenghao_equiment_constitution/设备信息{datetime.datetime.now().strftime("%Y-%m-%d")}.xlsx'
+    down_path=settings.resolve_path(f'spider/down/nenghao_equiment_constitution/设备信息{datetime.datetime.now().strftime("%Y-%m-%d")}.xlsx')
     url=CONFIG.URL
     headers=CONFIG.HEADERS
     with sql_orm().session_scope() as temp:
@@ -31,7 +32,7 @@ def down_equiment_consitution():
         pass
 
 def down_lixian():
-    down_path=f'{SPIDER_PATH}nenghao_lixian/设备信息{datetime.datetime.now().strftime("%Y-%m-%d")}.xlsx'
+    down_path=settings.resolve_path(f'spider/down/nenghao_lixian/设备信息{datetime.datetime.now().strftime("%Y-%m-%d")}.xlsx')
     url=CONFIG2.URL
     headers=CONFIG2.HEADERS
     with sql_orm().session_scope() as temp:
