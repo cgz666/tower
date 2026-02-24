@@ -6,7 +6,6 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse
 
 # 导入所有路由
-from app.api.remote_trigger import router as remote_trigger_router
 from app.api.oa_auth import router as oa_auth_router
 from app.api.download import router as download_router
 from app.api.battery import router as battery_router
@@ -25,21 +24,15 @@ app.add_middleware(
 )
 
 # 静态文件和模板
-app.mount("/static", StaticFiles(directory=settings.resolve_path("app/static")), name="static")
 templates = Jinja2Templates(directory=settings.resolve_path("app/templates"))
 
 # 注册所有路由
-# app.include_router(remote_trigger_router)
 app.include_router(oa_auth_router)
 app.include_router(download_router)
 app.include_router(battery_router)
 app.include_router(station_router)
 app.include_router(performance_router)
 
-# 根路由重定向
-@app.get("/")
-async def root():
-    return RedirectResponse(url="/battery/life")
 
 #  启动命令：uvicorn app.main:app --host 0.0.0.0 --port 5000 --workers 4
 

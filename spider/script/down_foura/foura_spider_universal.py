@@ -831,14 +831,14 @@ class PerformenceBySiteList():
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/performanceMge/perfdata.xhtml'
         del self.data['FINAL']
 
-    def main(self, site_list, search_id, cookie_user=1, timedelta=1440):
+    def main(self, site_list, search_id, cookie_user=1, minutes_back=1440):
         df_list = []
         page_size = 200
         for i in range(0, len(site_list), page_size):
             chunk = site_list[i:i + page_size]
             for key in ['1', '2']:
                 now = datetime.now()
-                start_time = now - timedelta(minutes=timedelta)
+                start_time = now - timedelta(minutes=minutes_back)
 
                 def format_datetime(dt):
                     return dt.strftime("%Y-%m-%d %H:%M"), dt.strftime("%m/%Y")

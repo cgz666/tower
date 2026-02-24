@@ -21,7 +21,7 @@ async def battery_life(
 ):
     per_page = 10
 
-    with sql_orm(database='battery_life').session_scope() as (sql, Base):
+    with sql_orm().session_scope() as (sql, Base):
         # 主查询
         sql_str = 'select * from result'
         result = sql.execute(text(sql_str))
@@ -117,7 +117,7 @@ async def battery_life(
 @router.get("/life/city", response_class=HTMLResponse)
 async def battery_life_city(request: Request):
     # 获取全区站址数
-    with sql_orm(database='tower').session_scope() as (sql, Base):
+    with sql_orm().session_scope() as (sql, Base):
         res = sql.execute(
             text("select city as 市,count(*) as 站址数 from station where fsu_status='交维' group by city")).fetchall()
         station = pd.DataFrame([dict(row) for row in res])
@@ -178,7 +178,7 @@ async def battery_life_download(request: Request):
 
 @router.get("/shangdan", response_class=HTMLResponse)
 async def battery_shangdan(request: Request, id: str = Query(...)):
-    df = sql_orm(database="battery_life").excute_sql(
+    df = sql_orm().excute_sql(
         f"select * from battery_shangdan where id='{id}'",
         return_df=True
     )
@@ -189,7 +189,7 @@ async def battery_shangdan(request: Request, id: str = Query(...)):
 @router.get("/get_battery")
 async def get_battery():
     try:
-        with sql_orm(database='battery_life').session_scope() as temp:
+        with sql_orm().session_scope() as temp:
             sql, Base = temp
             sql_str = text("select * from result")
             res = sql.execute(sql_str)

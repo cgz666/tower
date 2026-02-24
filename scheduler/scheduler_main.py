@@ -5,9 +5,6 @@ import threading
 from datetime import datetime
 import random
 from scheduler.task_logger import log_task_execution
-from app.service.msg_energy_offline.script import main as msg_energy_offline
-from app.service.msg_energy_order.script import main as msg_energy_order
-from app.service.msg_zhilian_order.script import main as msg_zhilian_order
 #################       爬虫          ################################################
 from spider.script.down_baobiao_system.down_baobiao_system import BaoBiaoSystem
 from spider.script.down_foura import down_yitihua_order,foura_spider_universal

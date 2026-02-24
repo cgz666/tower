@@ -1,10 +1,11 @@
 import pandas as pd
 import os
 from message.ID_serch.down_file import down_by_site_list
+from core.config import settings
 
 def get_table(path):
     try:
-        out_put_path = path.replace('.xlsx', '结果.xlsx')
+        out_put_path = str(path).replace('.xlsx', '结果.xlsx')
         df = pd.read_excel(path, dtype=str)
         df1, df2, df3, df4, df5 = down_by_site_list(df["站址运维ID"].to_list())
 
@@ -42,7 +43,7 @@ def get_table(path):
             df = pd.merge(df, add_df, on=['站址运维ID','设备ID'], how='left')
         # 处理站址信息
         usecols = ['所属省', '所属市', '区县（行政区划）', '乡镇（街道）', '名称', '站址编码', '运维ID', '站址经度', '站址纬度', '站址细分类型', '供电方式（一级）']
-        add_df = pd.read_csv(f"{INDEX}websource/spider_download/station/站址信息.csv", dtype=str, usecols=usecols)
+        add_df = pd.read_csv(settings.resolve_path("spider/down/station/站址信息.csv"), dtype=str, usecols=usecols)
         add_df = add_df.rename(columns={
             '所属省': '省份',
             '所属市': '地市',
@@ -58,22 +59,22 @@ def get_table(path):
 
         # 处理FSU信息
         usecols = ['站址运维ID', 'FSU硬件厂家', '设备型号']
-        add_df = pd.read_csv(f"{INDEX}websource/spider_download/fsu_chaxun_all/fsu清单.csv", dtype=str, usecols=usecols)
+        add_df = pd.read_csv(settings.resolve_path("spider/down/fsu_chaxun_all/fsu清单.csv"), dtype=str, usecols=usecols)
         add_df = add_df.rename(columns={'FSU硬件厂家': 'FSU厂家', '设备型号': 'FSU规格型号'})
         df = pd.merge(df, add_df, on='站址运维ID', how='left')
 
         # 处理电池信息
-        folder = f'{INDEX}message/ID_serch/xls/电池/'
+        folder = settings.resolve_path('message/ID_serch/xls/电池')
         df_list = []
         for path in os.listdir(folder):
             if '锂' in path:
                 usecols = ['站址运维ID', '入网状态', '类型', '生产厂商', '型号']
-                temp_df = pd.read_excel(folder + path, dtype=str, usecols=usecols)
+                temp_df = pd.read_excel(os.path.join(folder, path), dtype=str, usecols=usecols)
                 # 修正原代码bug：添加赋值操作
                 temp_df = temp_df.rename(columns={'型号': '蓄电池型号'})
             else:
                 usecols = ['站址运维ID', '入网状态', '类型', '生产厂商', '蓄电池型号']
-                temp_df = pd.read_excel(folder + path, dtype=str, usecols=usecols)
+                temp_df = pd.read_excel(os.path.join(folder, path), dtype=str, usecols=usecols)
             df_list.append(temp_df)
 
         add_df = pd.concat(df_list)
@@ -84,8 +85,8 @@ def get_table(path):
 
         # 处理开关电源信息
         usecols = ['站址运维ID', '生产厂商', '型号', '监控模块型号', '入网状态']
-        path1 = os.path.join(INDEX, "message/ID_serch/xls/开关电源1.xls")
-        path2 = os.path.join(INDEX, "message/ID_serch/xls/开关电源2.xls")
+        path1 = settings.resolve_path("message/ID_serch/xls/开关电源1.xls")
+        path2 = settings.resolve_path("message/ID_serch/xls/开关电源2.xls")
         add_df = pd.concat(pd.read_excel(p, dtype=str, usecols=usecols) for p in [path1, path2])
         add_df = add_df.loc[(add_df['入网状态'] == '在网') | (add_df['入网状态'] == '初始录入')]
         add_df = add_df.rename(columns={'生产厂商': '开关电源厂家', '型号': '开关电源型号'})
@@ -140,4 +141,4 @@ def get_table(path):
         print(e)
         return '失败'
 
-# get_table(r"F:\newtowerV2\message\ID_serch\xls\查询用站址运维ID.xlsx")
+# get_table(settings.resolve_path(r"message\ID_serch\xls\查询用站址运维ID.xlsx"))

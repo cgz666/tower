@@ -41,7 +41,7 @@ async def down_wendu_guogao(
 
     try:
         df = sql_orm().excute_sql(
-            f'select * from 自助取数.hbase where (告警名称 in ("温度过高","温度过高（预告警）"))and(告警发生日期 between "{begin}" and "{end}")',
+            f'select * from hbase where (告警名称 in ("温度过高","温度过高（预告警）"))and(告警发生日期 between "{begin}" and "{end}")',
             return_df=True
         )
         file_path = f'{folder}/{file_name}'
@@ -80,7 +80,7 @@ async def down_alarm_history(
 
     try:
         df = sql_orm().excute_sql(
-            f"select * from 自助取数.hbase where ({alarm_condition}) and (告警发生日期 between '{begin}' and '{end}')",
+            f"select * from hbase where ({alarm_condition}) and (告警发生日期 between '{begin}' and '{end}')",
             return_df=True
         )
         file_path = f'{folder}/{file_name}'

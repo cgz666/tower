@@ -90,4 +90,4 @@ data/
 *.png
 *.jpg
 *.mp4
-/app/service/templates/weui-master/
+/app/templates/weui-master/
