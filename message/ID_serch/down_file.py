@@ -1,6 +1,7 @@
 import os
 from message.ID_serch.config import config_serch_li_battery,config_serch_battery,config_serch_kaiguan
 from spider.script.down_foura.foura_spider_universal import down_file
+from spider.script.down_foura.foura_spider_universal import PerformenceBySiteList
 import threading
 import pandas as pd
 import shutil
@@ -66,7 +67,13 @@ class GetKaiGuan():
         self.data['1']['queryForm:unitHidden'] = '0099983,0099984,0099985,0099986,0099987,0099988,0099989,0099990'
         self.data['1_5']['queryForm:unitHidden'] = '0099983,0099984,0099985,0099986,0099987,0099988,0099989,0099990'
         down_file(self.URL, self.data, self.path2)
-
+def down_by_site_list(site_list):
+    ids = ['0406112001', '0406143001', '0406147001', '0406146001', '0406144001']
+    dfs=[]
+    for serch_id in ids:
+        df=PerformenceBySiteList().main(site_list, serch_id)
+        dfs.append(df)
+    return tuple(dfs)
 
 if __name__ == '__main__':
     GetKaiGuan().down()

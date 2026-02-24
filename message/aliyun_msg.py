@@ -6,7 +6,7 @@ from alibabacloud_tea_openapi import models as open_api_models
 from alibabacloud_dysmsapi20170525 import models as dysmsapi_20170525_models
 from alibabacloud_tea_util import models as util_models
 import datetime
-from utils_or_config.mysql_connecter import sql_orm_tower
+from core.sql import sql_orm
 import json
 
 class Sample():
@@ -45,7 +45,7 @@ class Sample():
         try:
             # 复制代码运行请自行打印 API 的返回值
             ali_response=client.send_sms_with_options(send_sms_request, runtime)
-            with sql_orm_tower().session_scope() as temp:
+            with sql_orm().session_scope() as temp:
                 sqlsession, Base = temp
                 pojo = Base.classes.alimsg_log
                 temp = pojo(time=datetime.datetime.now().strftime('%Y/%m/%d %H:%M:%S'), msg=f"{json.loads(json_text)}",phone=phone,code=code,ali_response=ali_response.body.message)

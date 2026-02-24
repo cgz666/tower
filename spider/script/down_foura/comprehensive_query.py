@@ -48,7 +48,7 @@ class Temperature:
         df_db = df_db.where(pd.notna(df_db), None)
 
         # 清空并插入
-        with sql_orm(database='core').session_scope() as temp:
+        with sql_orm().session_scope() as temp:
             sql, Base = temp
             sql.query(Base.classes.temperature).delete()
             for _, row in df_db.iterrows():

@@ -456,7 +456,7 @@ class YiTiHuaOrder():
                 df_db[field] = df[field] if field in df.columns else None
             df_db = df_db[(df_db["故障单编码"].notna()) & (df_db["故障单编码"] != "")]
             df_db = df_db.where(pd.notna(df_db), None)
-            with sql_orm(database='自助取数').session_scope() as temp:
+            with sql_orm().session_scope() as temp:
                 sql, Base = temp
                 pojo = getattr(Base.classes,"一体化工单")
                 for index, row in df_db.iterrows():

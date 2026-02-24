@@ -51,7 +51,7 @@ class sql_orm():
                     raise e
     def get_cookies(self,id):
         with self.session_scope() as (sql, Base):
-            pojo = getattr(Base.classes, "cookies")
+            pojo = getattr(Base.classes, "foura")
             if id == "foura":
                 id = "foura1"
             res = sql.query(pojo).filter(pojo.id==id).first()

@@ -28,7 +28,7 @@ class predict_dc():
         self.path_picture_temperate=f'{TEMP_PATH_ONE_MONTH}{self.time_stamp}DC_temperate.png'
 
     def temper_list(self,df):
-        with sql_orm(database='nanfen').session_scope() as temp:
+        with sql_orm().session_scope() as temp:
             sqlsession,Base=temp
             # 生成文本
             pojo_phone = Base.classes.phone_predict# 钉钉电话

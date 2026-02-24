@@ -122,7 +122,7 @@ class predict():
 
     def run_thread(self):
         AlarmNow4AByCity().down("0099977",self.alarm_path)
-        with sql_orm(database='nanfen').session_scope() as self.temp:
+        with sql_orm().session_scope() as self.temp:
             self.process()
 
 # predict().run_thread()

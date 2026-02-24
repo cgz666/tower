@@ -733,7 +733,7 @@ class AlarmHistoryHbase():
                 df = df.drop_duplicates()
                 df = df.fillna('')
                 df['告警发生日期'] = df['告警发生时间']
-                with sql_orm(database='自助取数').session_scope() as temp:
+                with sql_orm().session_scope() as temp:
                     sql, Base = temp
                     pojo = Base.classes.hbase
                     for index, row in df.iterrows():
@@ -1077,7 +1077,7 @@ class AlarmNow():
         df_db = df_db[(df_db["ID"].notna()) & (df_db["ID"] != "")]
         df_db = df_db.where(pd.notna(df_db), None)
 
-        with sql_orm(database='tower').session_scope() as temp:
+        with sql_orm().session_scope() as temp:
             sql, Base = temp
             # 1. 清空表
             sql.query(Base.classes.alarm_now).delete()

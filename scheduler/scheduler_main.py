@@ -32,11 +32,10 @@ def run_task_in_thread(task_func, task_name):
     thread.start()
     return thread
 
-def task_month_1():
+def month_3():
     if datetime.now().day != 3:
         return  # 不是3号直接返回，什么都不做
-    # 是3号才执行实际逻辑
-    print("导入基站负载电流数据...")
+    task_month_1()
 
 def schedule_loop():
     """主调度循环"""
@@ -76,7 +75,7 @@ def schedule_loop():
     # 7:00
     schedule.every().day.at("07:00").do(run_task_in_thread, task_7, "导出每日fsu离线情况")
     schedule.every().day.at("07:00").do(run_task_in_thread,lambda: foura_spider_universal.YiDongOrder().main(), "移动工单")
-    schedule.every().day.at("07:00").do(run_task_in_thread, task_month_1, "导入基站负载电流数据")
+    schedule.every().day.at("07:00").do(run_task_in_thread, month_3, "导入基站负载电流数据")
 
     # 7:40
     schedule.every().day.at("07:40").do(run_task_in_thread,lambda: foura_spider_universal.FsuChaXun().main(), "FSU查询")

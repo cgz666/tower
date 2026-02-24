@@ -1,5 +1,4 @@
 import pandas as pd
-from config import INDEX
 import os
 from message.ID_serch.down_file import down_by_site_list
 
