@@ -1,15 +1,12 @@
 # app/api/download.py
 from fastapi import APIRouter, Query
-from fastapi.responses import FileResponse, StreamingResponse
-import pandas as pd
+from fastapi.responses import FileResponse
 import datetime
-import os
 import shutil
-import tempfile
 from core.config import settings
 from core.sql import sql_orm
 
-router = APIRouter(prefix="/tt", tags=["文件下载"])
+router = APIRouter(tags=["文件下载"])
 
 TEMP_PATH_ONE_DAY = settings.resolve_path("spider/down/temp_folder_one_day")
 

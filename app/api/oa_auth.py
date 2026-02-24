@@ -1,8 +1,7 @@
 # app/api/oa_auth.py
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
 
-router = APIRouter(prefix="/tt", tags=["OA认证"])
+router = APIRouter(tags=["OA认证"])
 
 # 内存缓存（生产环境建议用 Redis）
 auth_cache = ""

@@ -9,11 +9,11 @@ import tempfile
 from core.sql import sql_orm
 from core.config import settings
 
-router = APIRouter(prefix="/battery", tags=["电池续航"])
+router = APIRouter(tags=["电池续航"])
 templates = Jinja2Templates(directory=settings.resolve_path("app/templates"))
 
 
-@router.get("/life", response_class=HTMLResponse)
+@router.get("/battery_life", response_class=HTMLResponse)
 async def battery_life(
         request: Request,
         page: int = Query(1),
@@ -32,7 +32,7 @@ async def battery_life(
 
         # 获取上个月负载电流
         last_month = datetime.datetime.now().replace(day=1) - datetime.timedelta(days=1)
-        sql_str = f"""select 运维监控站址ID as 站址运维ID,月度平均值 from 自助取数.基站负载电流 
+        sql_str = f"""select 运维监控站址ID as 站址运维ID,月度平均值 from 基站负载电流 
                     where 年={last_month.year} and 月份={last_month.month}"""
         result = sql.execute(text(sql_str))
         df_dc = pd.DataFrame(result.fetchall(), columns=result.keys())
@@ -114,7 +114,7 @@ async def battery_life(
     })
 
 
-@router.get("/life/city", response_class=HTMLResponse)
+@router.get("/battery_life_city", response_class=HTMLResponse)
 async def battery_life_city(request: Request):
     # 获取全区站址数
     with sql_orm().session_scope() as (sql, Base):
@@ -124,10 +124,6 @@ async def battery_life_city(request: Request):
 
     # 从 session 获取数据（简化版，实际应该用 Redis 或数据库）
     df = pd.DataFrame(request.session.get('battery_life_data', []))
-
-    if df.empty:
-        return "请先访问 /battery/life 加载数据"
-
     df = df.loc[df['FSU状态'] == '交维']
     df['基站电池续航时长（小时）'] = pd.to_numeric(df['基站电池续航时长（小时）'], errors='coerce').fillna(0)
 
@@ -164,8 +160,8 @@ async def battery_life_city(request: Request):
     return templates.TemplateResponse("battery_life_city.html", {"request": request, "data": data})
 
 
-@router.get("/life/download")
-async def battery_life_download(request: Request):
+@router.get("/battery_life_download_excel")
+async def battery_life_download_excel(request: Request):
     data = request.session.get('battery_life_data', [])
     if not data:
         return {"error": "无数据"}
@@ -176,7 +172,7 @@ async def battery_life_download(request: Request):
         return FileResponse(temp.name, filename='蓄电池续航能力.xlsx')
 
 
-@router.get("/shangdan", response_class=HTMLResponse)
+@router.get("/battery_shangdan", response_class=HTMLResponse)
 async def battery_shangdan(request: Request, id: str = Query(...)):
     df = sql_orm().excute_sql(
         f"select * from battery_shangdan where id='{id}'",
@@ -186,7 +182,7 @@ async def battery_shangdan(request: Request, id: str = Query(...)):
     return templates.TemplateResponse("battery_shangdan.html", {"request": request, "data": data})
 
 
-@router.get("/get_battery")
+@router.get("/tt/get_battery")
 async def get_battery():
     try:
         with sql_orm().session_scope() as temp:

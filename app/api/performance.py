@@ -1,6 +1,6 @@
 # app/api/performance.py
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 import os
 import glob
@@ -8,7 +8,7 @@ import datetime
 import subprocess
 from core.config import settings
 
-router = APIRouter(prefix="/performance", tags=["报表"])
+router = APIRouter(tags=["报表"])
 templates = Jinja2Templates(directory=settings.resolve_path("app/templates"))
 
 
@@ -28,7 +28,7 @@ def file_mtime(hour: str):
     return t.strftime('%m-%d %H:%M')
 
 
-@router.get("/sheet", response_class=HTMLResponse)
+@router.get("/performance_sheet", response_class=HTMLResponse)
 async def performance_sheet(request: Request):
     hours = ['08', '14', '17']
     times = {h: file_mtime(h) for h in hours}
@@ -39,7 +39,7 @@ async def performance_sheet(request: Request):
     })
 
 
-@router.post("/sheet/update")
+@router.post("/performance_sheet")
 async def update_and_info():
     SCRIPT_PATH = settings.resolve_path('message/performance_sheet/script.py')
     PYTHON_EXE = settings.resolve_path(r'E:\miniconda3\envs\tower\python.exe')
@@ -52,7 +52,7 @@ async def update_and_info():
     return {"status": "success", "times": times}
 
 
-@router.get("/sheet/download/{hour}")
+@router.get("/download/{hour}")
 async def download(hour: str):
     if hour not in {'08', '14', '17'}:
         return {"error": "Invalid hour"}
