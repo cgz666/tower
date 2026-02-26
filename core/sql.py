@@ -60,6 +60,14 @@ class sql_orm():
                     cookies[key] = value
             except:pass
             return {"cookies":cookies, "cookies_str":cookies_str}
+    def save_data(self,df,table):
+        with self.session_scope() as (sql, Base):
+            pojo=getattr(Base.classes,table)
+            rows = []
+            for index, row in df.iterrows():
+                temp = pojo(**row.to_dict())
+                rows.append(temp)
+            sql.bulk_save_objects(rows)
     def get_data(self,table):
         df = pd.read_sql_table(table, con=self.engine)
         return df

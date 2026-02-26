@@ -50,7 +50,7 @@ def task_7():
     gen_fsu_static(path=path)
 
 def task_month_1():
-    with sql_orm(database='battery_life').session_scope() as temp:
+    with sql_orm().session_scope() as temp:
         sql, Base = temp
         now=datetime.datetime.now().replace(day=1)-datetime.timedelta(days=1)
         path=f'F:/newtowerV2/websource/spider_download/DC/{now.strftime("%Y%m")}基站负载电流.xlsx'

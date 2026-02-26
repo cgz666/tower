@@ -19,8 +19,7 @@ class GetLiBattery():
             'FINAL': CONFIG.INTO_DATA_FINAL,
         }
         self.URL=CONFIG.URL
-        self.folder=settings.resolve_path(f'message/ID_serch/xls/电池/')
-
+        self.folder=settings.resolve_path(f'message/ID_serch/xls/电池')
 
     def down(self):
         i=0
@@ -28,7 +27,8 @@ class GetLiBattery():
             i+=1
             self.data['1']['queryForm:unitHidden']=city
             self.data['1_5']['queryForm:unitHidden'] = city
-            down_file(self.URL,self.data,self.folder+f"{i}锂电池.xls")
+            file_path = os.path.join(self.folder, f"{i}锂电池.xls")
+            down_file(self.URL, self.data, file_path)
 
 class GetBattery():
     def __init__(self):
@@ -76,6 +76,6 @@ def down_by_site_list(site_list):
     return tuple(dfs)
 
 if __name__ == '__main__':
-    GetKaiGuan().down()
+    # GetKaiGuan().down()
     # GetBattery().down()
-    # GetLiBattery().down()
+    GetLiBattery().down()

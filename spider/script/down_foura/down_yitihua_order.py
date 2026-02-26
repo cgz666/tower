@@ -323,9 +323,9 @@ class YiTiHuaOrder():
         self.down_name_en='yitihua_order'
         self.down_suffix='.xls'
 
-        self.folder_temp=settings.resolve_path(f'spider/down/{self.down_name_en}/temp/')
+        self.folder_temp=settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path=settings.resolve_path(f'spider/down/{self.down_name_en}/{self.start.strftime("%Y%m%d")}')
-        self.folder_temp_process=settings.resolve_path(f'spider/down/{self.down_name_en}/process/')
+        self.folder_temp_process=settings.resolve_path(f'spider/down/{self.down_name_en}/process')
         self.sheet1=os.path.join(self.folder_temp_process, '1.xlsx')
         self.sheet2=os.path.join(self.folder_temp_process, '2.xlsx')
         self.model=os.path.join(self.folder_temp_process, '模板.xlsx')

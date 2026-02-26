@@ -394,7 +394,7 @@ class StationDC():
 
     def sql_process(self, df):
         df = df.drop(columns=["备注"]).fillna("")
-        orm = sql_orm(database="自助取数")
+        orm = sql_orm()
         orm.save_data_merge(df, '基站负载电流')
 
     def main(self):
@@ -494,9 +494,9 @@ class YinHuanOrder():
         for guidang in ['Y', 'N']:
             self.down(guidang)
             if guidang == 'Y':
-                output_path = self.output_path.replace('.xlsx', '已归档.xlsx')
+                output_path = str(self.output_path).replace('.xlsx', '已归档.xlsx')
             else:
-                output_path = self.output_path.replace('.xlsx', '未归档.xlsx')
+                output_path = str(self.output_path).replace('.xlsx', '未归档.xlsx')
             concat_df(self.folder_temp, output_path)
         log_downtime(self.down_name_en)
 
