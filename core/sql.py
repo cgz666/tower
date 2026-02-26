@@ -51,8 +51,6 @@ class sql_orm():
     def get_cookies(self,id):
         with self.session_scope() as (sql, Base):
             pojo = getattr(Base.classes, "foura")
-            if id == "foura":
-                id = "foura1"
             res = sql.query(pojo).filter(pojo.id==id).first()
             cookies_str = res.cookies
             cookies = {}
@@ -67,3 +65,14 @@ class sql_orm():
         return df
     def get_engine(self):
         return self.engine
+    def save_data_with_delete(self, df, table):
+        lock = threading.Lock()
+        with lock:  # 使用线程锁
+            with self.session_scope() as (sql, Base):
+                pojo = getattr(Base.classes, table)
+                sql.execute(text(f'TRUNCATE TABLE {table}'))
+                rows = []
+                for index, row in df.iterrows():
+                    temp = pojo(**row.to_dict())
+                    rows.append(temp)
+                sql.bulk_save_objects(rows)

@@ -15,7 +15,7 @@ class BatteryLifeCaculate():
     def __init__(self):
         self.down_path = settings.resolve_path("message/battery_life/xls/活动告警.csv")
     def init_pojo(self, table_name, **kwargs):
-        with sql_orm(database='battery_life').session_scope() as (sql, Base):
+        with sql_orm().session_scope() as (sql, Base):
             pojo = getattr(Base.classes, table_name)
             temp = pojo(**kwargs)
             sql.merge(temp)
@@ -23,7 +23,7 @@ class BatteryLifeCaculate():
         df = pd.read_csv(self.down_path, dtype=str, usecols=['站址运维ID', '告警发生时间', '告警名称'])
         df = df[df['告警名称'] == '交流输入停电告警']
         site_ids = df['站址运维ID'].tolist()
-        result_df = PerformenceBySiteList().main(site_ids, '0406111001',timedelta=20)
+        result_df = PerformenceBySiteList().main(site_ids, '0406111001',minutes_back=20)
         df = df.merge(result_df[['站址运维ID', '实测值']], on='站址运维ID', how='left')
         df['实测值'] = df['实测值'].fillna('')
         df.rename(columns={'实测值': '直流电压'}, inplace=True)
@@ -34,7 +34,7 @@ class BatteryLifeCaculate():
         df = df[df['续航'] >= 0]
         df = df[df['直流电压'].astype(float) >= 53]
 
-        with sql_orm(database='battery_life').session_scope() as (sql, Base):
+        with sql_orm().session_scope() as (sql, Base):
             pojo = Base.classes.voltage
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'], pojo.caculate_type == row['类型']).first()
@@ -53,14 +53,14 @@ class BatteryLifeCaculate():
         df['类型'] = '直流输出电压过低告警历时'
         df = df[df['续航'] >= 0]
 
-        with sql_orm(database='battery_life').session_scope() as (sql, Base):
+        with sql_orm().session_scope() as (sql, Base):
             pojo = Base.classes.zhiliu_voltage
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'], pojo.caculate_type == row['类型']).first()
                 if (existing_record is None) or (row['续航'] >= existing_record.battery_life) or ((datetime.datetime.now() - existing_record.outage_time).total_seconds() >= 15768000) or (existing_record.battery_life > 10):
                     self.init_pojo('zhiliu_voltage', id=row['站址运维ID'], outage_time=row['告警发生时间_df1'], caculate_type=row['类型'], zhiliu_voltage_time=row['告警发生时间_df2'], battery_life=row['续航'])
     def calculate_offline(self):
-        with sql_orm(database='自助取数').session_scope() as (sql, Base):
+        with sql_orm().session_scope() as (sql, Base):
             sql_str = """
             SELECT outage.站址运维ID, offline.告警名称 as 退服告警名称, outage.告警发生时间,
                    offline.告警发生时间 as 退服时间,
@@ -85,7 +85,7 @@ class BatteryLifeCaculate():
         df['类型'] = '运维一级二级低压脱离'
         df = df[df['续航'] >= 0]
 
-        with sql_orm(database='battery_life').session_scope() as (sql, Base):
+        with sql_orm().session_scope() as (sql, Base):
             pojo = Base.classes.offline
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'], pojo.caculate_type == row['类型']).first()
@@ -102,7 +102,7 @@ class BatteryLifeCaculate():
                 df = df[~df['order_alarm_type'].isin(['非铁塔配套原因故障', '非铁塔原因-其它', '未移交机房站点'])]
                 df = df[~df['order_response'].isin(['运营商', '非铁塔'])].fillna('')
 
-                with sql_orm(database='自助取数').session_scope() as (sql, Base):
+                with sql_orm().session_scope() as (sql, Base):
                     pojo = Base.classes.order_for_battery_life
                     for _, row in df.iterrows():
                         sql.merge(pojo(**row.to_dict()))
@@ -110,7 +110,7 @@ class BatteryLifeCaculate():
                 print(e)
                 print(file)
 
-        with sql_orm(database='自助取数').session_scope() as (sql, Base):
+        with sql_orm().session_scope() as (sql, Base):
             sql_str = """
             SELECT outage.站址, outage.站址运维ID, outage.告警发生时间, order_list.order_id, order_list.order_time,
                    TIMESTAMPDIFF(MINUTE, outage.告警发生时间, order_list.order_time) as 续航
@@ -133,7 +133,7 @@ class BatteryLifeCaculate():
         df['类型'] = '运营商接口工单'
         df = df[df['续航'] >= 0]
 
-        with sql_orm(database='battery_life').session_scope() as (sql, Base):
+        with sql_orm().session_scope() as (sql, Base):
             pojo = Base.classes.order
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'], pojo.caculate_type == row['类型']).first()
@@ -142,17 +142,17 @@ class BatteryLifeCaculate():
     def generate_result(self):
         with open(settings.resolve_path( r'message\battery_life\out_put_sql.txt'), 'r', encoding='utf-8') as file:
             sql_script = file.read().replace('\uFEFF', '')
-            with sql_orm(database='battery_life').session_scope() as (sql, Base):
+            with sql_orm().session_scope() as (sql, Base):
                 result = sql.execute(text(sql_script))
                 df = pd.DataFrame(result.fetchall(), columns=result.keys()).fillna('')
-                sql_orm(database='battery_life').save_data_with_delete(df, 'result')
+                sql_orm().save_data_with_delete(df, 'result')
                 data = df.to_json(orient='records')
                 headers = {'Content-Type': 'application/json'}
                 response = requests.post('http://clound.gxtower.cn:3980/tt/wechat_battery_life_save_data', data=data, headers=headers)
     def generate_result_shangdan(self):
         with open(settings.resolve_path( r'message\battery_life\out_put_sql_shangdan.txt'), 'r', encoding='utf-8') as file:
             sql_script = file.read().replace('\uFEFF', '')
-        df = sql_orm(database='battery_life').excute_sql(sql_script,return_df=True)
+        df = sql_orm().excute_sql(sql_script,return_df=True)
         df = df.fillna('')
         time_mask = pd.to_datetime(df["续航统计时间"], errors='coerce') <= datetime.datetime.now() - datetime.timedelta(
             days=1)
@@ -195,7 +195,7 @@ class BatteryLifeCaculate():
             summary = f"停电告警&续航小于2小时工单，请立即上单！\n\n"
             return summary + common_info + separator + separator.join(battery_lines)
 
-        with sql_orm(database="battery_life").session_scope() as (sql, base):
+        with sql_orm().session_scope() as (sql, base):
             BatteryShangdan = base.classes.battery_shangdan
             for site_name, group in grouped:
                 id_val = group['id'].iloc[0]

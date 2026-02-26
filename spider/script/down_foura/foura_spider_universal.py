@@ -8,6 +8,7 @@ from xlsx2csv import Xlsx2csv
 import time
 import re
 import requests
+import numpy as np
 from functools import wraps
 from sqlalchemy import text
 from spider.script.down_foura import foura_data
@@ -77,7 +78,7 @@ def get_foura_cookie(ID=1):
     :return: 解析后的cookie字典；若ID不存在/格式错误，返回空字典。
     """
     db = sql_orm()
-    cookie_result = db.get_cookies(id=f"foura{ID}")
+    cookie_result = db.get_cookies(f"{ID}")
     return cookie_result["cookies"]
 def clear_folder(folder_temp):
     """
@@ -661,7 +662,8 @@ class FsuJianKong():
     def down(self):
         down_file(self.URL, self.data, self.output_path)
         if datetime.now().minute < 30:
-            shutil.copy(self.output_path, self.output_path.replace('每半小时', '每小时'))
+            new_path = str(self.output_path).replace('每半小时', '每小时')
+            shutil.copy(self.output_path, new_path)
         log_downtime(self.down_name_en)
     def down_5min(self):
         down_file(self.URL, self.data, self.temp_path)
@@ -1000,7 +1002,7 @@ class HisPerformence():
         headers = self._get_headers()
         cookies = get_foura_cookie(cookie_user)
         now = datetime.now()
-        past = now - datetime(hours=hours)
+        past = now - timedelta(hours=hours)
         start_time = past.strftime('%Y-%m-%d %H:%M')
         end_time = now.strftime('%Y-%m-%d %H:%M')
 
@@ -1066,27 +1068,41 @@ class AlarmNow():
         res = requests.get(r'http://clound.gxtower.cn:3980/tt/get_alarm')
         with open(self.path_csv, "wb") as codes:
             codes.write(res.content)
-        df = pd.read_csv(self.path_csv, dtype=str).rename(
+
+        # 读取时处理空值
+        df = pd.read_csv(self.path_csv, dtype=str, keep_default_na=False).rename(
             columns={"运维ID": "站址运维ID", "告警入库时间": "告警发生时间"})
+        df = df.replace('', None)
         df.to_csv(self.path_csv, index=False, encoding='utf-8-sig')
 
         df.columns = df.columns.str.strip()
+
+        # 构建数据
         df_db = pd.DataFrame()
         for field in self.db_fields:
             df_db[field] = df[field] if field in df.columns else None
-        df_db = df_db[(df_db["ID"].notna()) & (df_db["ID"] != "")]
-        df_db = df_db.where(pd.notna(df_db), None)
+
+        # 过滤
+        df_db = df_db[df_db["ID"].notna() & (df_db["ID"] != "")]
 
         with sql_orm().session_scope() as temp:
             sql, Base = temp
-            # 1. 清空表
             sql.query(Base.classes.alarm_now).delete()
             sql.commit()
 
-            # 2. 插入新数据
             pojo = Base.classes.alarm_now
+
+            # 逐行处理，确保没有 NaN
             for _, row in df_db.iterrows():
-                sql.add(pojo(**row.to_dict()))
+                # 把 Series 转成 dict，并处理 NaN
+                data = {}
+                for k, v in row.items():
+                    if pd.isna(v):
+                        data[k] = None
+                    else:
+                        data[k] = v
+                sql.add(pojo(**data))
+
             sql.commit()
         # 南分备份需求
         if datetime.now().minute >= 40:
@@ -1112,6 +1128,10 @@ class AlarmNow4AByCity():
         self.down_suffix = '.xls'
         self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
+    def down1(self,city,path):
+        for key in ['1']:
+            self.data[key]['queryForm:unitHidden'] = city
+        down_file(self.URL, self.data, path)
     def down(self):
         down_list = ['0099977', '0099978', '0099979', '0099980', '0099981', '0099982', '0099983', '0099984', '0099985',
                      '0099986', '0099987', '0099988', '0099989', '0099990']
@@ -1253,6 +1273,7 @@ class BatteryLevel():
 
     def df_process(self):
         df = pd.DataFrame(self.all_data)
+        df = df.replace({np.nan: None})
         with sql_orm().session_scope() as temp:
             sql, Base = temp
             pojo = Base.classes.battery_level

@@ -1,10 +1,11 @@
 import pandas as pd
+import os
 from core.utils.send_ding_msg import dingmsg
 from core.sql import sql_orm
 from sqlalchemy import or_, and_
 from sqlalchemy import text
 from core.config import settings
-from spider.script.down_foura.foura_spider_universal import AlarmNow4AByCity
+from spider.script.down_foura.foura_spider_universal import AlarmNow4AByCity,log_downtime
 
 
 class predict():
@@ -121,7 +122,7 @@ class predict():
         self.send_alarm_msg(df_highlevel, 'highlevel_jiaoliu')
 
     def run_thread(self):
-        AlarmNow4AByCity().down("0099977",self.alarm_path)
+        AlarmNow4AByCity().down1("0099977",self.alarm_path)
         with sql_orm().session_scope() as self.temp:
             self.process()
 

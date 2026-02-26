@@ -1,4 +1,7 @@
+import sys
 import os
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+sys.path.insert(0, PROJECT_ROOT)
 from datetime import datetime
 import pandas as pd
 from openpyxl import load_workbook
@@ -30,7 +33,7 @@ class PerformanceSheet:
         "0418102001": 14,
     }
     FSU_PATH = settings.resolve_path('spider/down/fsu_chaxun_all/fsu清单.csv')
-    OUTPUT_DIR = settings.resolve_path('message/performance_sheet/xls')
+    OUTPUT_DIR = settings.resolve_path('message/performance_sheet/output')
     COOKIE_USER = 1
     TIMEDELTA = 30
 
@@ -43,7 +46,7 @@ class PerformanceSheet:
             site_list=self.SITE_LIST,
             search_id=",".join(self.SIGNAL_LIST),
             cookie_user=self.COOKIE_USER,
-            timedelta=self.TIMEDELTA,
+            minutes_back=self.TIMEDELTA,
         )
 
     def _fill_missing(self, df_main: pd.DataFrame) -> pd.DataFrame:
@@ -93,7 +96,7 @@ class PerformanceSheet:
         fsu_online = fsu_df.set_index("站址运维ID")["FSU在线状态"].to_dict()
         site_stat = fsu_df.set_index("站址运维ID")["站址状态"].to_dict()
 
-        wb = load_workbook("22站.xlsx")
+        wb = load_workbook(settings.resolve_path("message/performance_sheet/22站.xlsx"))
         ws = wb.active
 
         for row in range(4, 26):

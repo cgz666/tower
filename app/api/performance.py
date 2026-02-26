@@ -43,7 +43,6 @@ async def performance_sheet(request: Request):
 async def update_and_info():
     SCRIPT_PATH = settings.resolve_path('message/performance_sheet/script.py')
     PYTHON_EXE = settings.resolve_path(r'E:\miniconda3\envs\tower\python.exe')
-
     # 启动脚本（不阻塞）
     subprocess.Popen([PYTHON_EXE, SCRIPT_PATH], shell=True)
 

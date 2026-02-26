@@ -1114,6 +1114,58 @@ performence={
             'javax.faces.ViewState': 'j_id3',
             }
         }
+his_performence={
+            '1':{
+  "AJAXREQUEST": "_viewRoot",
+  "stationListFormB:nameText": "",
+  "stationListFormB:stationidText": "",
+  "stationListFormB:queryStatusId": "2",
+  "stationListFormB:currPageObjId": "0",
+  "stationListFormB": "stationListFormB",
+  "autoScroll": "",
+  "javax.faces.ViewState": "j_id9",
+  "stationListFormB:j_id764": "stationListFormB:j_id764",
+  "AJAX:EVENTS_COUNT": "1"
+             },
+            '2':{
+  "AJAXREQUEST": "_viewRoot",
+  "queryForm2B": "queryForm2B",
+  "queryForm2B:aname": "",
+  "queryForm2B:aid": "",
+  "queryForm2B:panel2OpenedState": "",
+  "javax.faces.ViewState": "j_id9",
+  "queryForm2B:j_id720": "queryForm2B:j_id720",
+  "AJAX:EVENTS_COUNT": "1"
+            },
+            'FINAL': {
+  "AJAXREQUEST": "_viewRoot",
+  "queryFormB": "queryFormB",
+  "queryFormB:aid": "",
+  "queryFormB:siteProvinceId": "0098364",
+  "queryFormB:queryFlag": "3",
+  "queryFormB:unitHidden1": "",
+  "queryFormB:unitTypeHidden": "",
+  "queryFormB:siteNameId": "",
+  "queryFormB:deviceName": "",
+  "queryFormB:did": "",
+  "queryFormB:midName": "",
+  "queryFormB:mid": "",
+  "queryFormB:queryFsuId": "",
+  "queryFormB:midType": "遥测",
+  "queryFormB:starttimeInputDate": "",
+  "queryFormB:starttimeInputCurrentDate": "",
+  "queryFormB:endtimeInputDate": "",
+  "queryFormB:endtimeInputCurrentDate": "",
+  "queryFormB:querySiteSourceCode": "",
+  "queryFormB:ifRestrict": "true",
+  "queryFormB:currPageObjId": "0",
+  "queryFormB:pageSizeText": "35",
+  "queryFormB:panelOpenedState": "",
+  "javax.faces.ViewState": "j_id9",
+  "queryFormB:j_id187": "queryFormB:j_id187",
+  "AJAX:EVENTS_COUNT": "1"
+        }
+}
 alarm_now={
   "1": {
     "AJAXREQUEST": "_viewRoot",

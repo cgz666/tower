@@ -30,7 +30,7 @@ def schedule_loop():
         lambda: KeepFourA().keep_cookies(),
         "保活-运监cookies"
     )
-    schedule.every(120).minutes.do(
+    schedule.every(360).minutes.do(
         run_task_in_thread,
         lambda: KeepFourA().get_cookies(cookie_user=0),
         "更新-运监cookies"
@@ -42,4 +42,5 @@ def schedule_loop():
 
 
 if __name__ == "__main__":
+    # KeepFourA().get_cookies(cookie_user=0)
     schedule_loop()

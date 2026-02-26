@@ -96,7 +96,7 @@ async def battery_life(
         data = df_str.iloc[start_index:end_index].to_dict('records')
 
         # 存入 session（FastAPI 需要用其他方式，这里简化）
-        request.session['battery_life_data'] = df.to_dict('records')
+        request.session['battery_life_data'] = df_str.to_dict('records')
 
     if len(data) == 0:
         return "无数据"
