@@ -1,68 +1,84 @@
-# app/api/oa_auth.py
 from fastapi import APIRouter, Request
+import redis
+from typing import Optional
 
 router = APIRouter(tags=["OA认证"])
 
-# 内存缓存（生产环境建议用 Redis）
-auth_cache = ""
-token_cache = ""
-sysToken_cache = ""
-csrftoken_cache = ""
-cookie_cache = ""
+redis_client = redis.Redis(
+    host="localhost",  # Redis 服务器IP
+    port=6379,         # Redis 端口
+    decode_responses=True,  # 自动将 bytes 转为字符串
+    password="123456"        # 如果有密码请填写，无则留空
+)
 
+# 定义 Redis Key 前缀（避免键名冲突）
+PREFIX = "oa_auth:"
 
+# 封装 Redis 操作函数
+def set_redis_key(key: str, value: str, expire: Optional[int] = None):
+    """设置 Redis 键值对，可选过期时间（秒）"""
+    redis_client.set(PREFIX + key, value)
+    if expire:
+        redis_client.expire(PREFIX + key, expire)
+
+def get_redis_key(key: str) -> str:
+    """获取 Redis 键值，默认返回空字符串"""
+    return redis_client.get(PREFIX + key) or ""
+
+# ========== 原有接口改造 ==========
 @router.post("/save_oa_auth")
 async def save_auth(request: Request):
-    global auth_cache
     data = await request.json()
-    auth_cache = data.get("authorization")
+    auth_value = data.get("authorization", "")
+    set_redis_key("authorization", auth_value)
+    print("收到Authorization:", auth_value)
     return {"status": "ok"}
-
 
 @router.get("/get_oa_auth")
 async def get_auth():
-    return {"authorization": auth_cache}
-
+    return get_redis_key("authorization")
 
 @router.post("/save_oa_token")
 async def save_token(request: Request):
-    global token_cache
     data = await request.json()
-    token_cache = data.get("token")
+    token_value = data.get("token", "")
+    set_redis_key("token", token_value)
+    print("收到Token:", token_value)
     return {"status": "ok"}
-
 
 @router.get("/get_oa_token")
 async def get_token():
-    return {"token": token_cache}
-
+    return get_redis_key("token")
 
 @router.post("/save_oa_sysToken")
 async def save_sysToken(request: Request):
-    global sysToken_cache
     data = await request.json()
-    sysToken_cache = data.get("sysToken")
+    sys_token_value = data.get("sysToken", "")
+    set_redis_key("sysToken", sys_token_value)
+    print("收到SysToken:", sys_token_value)
     return {"status": "ok"}
-
 
 @router.get("/get_oa_sysToken")
 async def get_sysToken():
-    return {"sysToken": sysToken_cache}
-
+    return get_redis_key("sysToken")
 
 @router.post("/save_oa_XCsrfToken")
 async def save_XCsrfToken(request: Request):
-    global csrftoken_cache, cookie_cache
     data = await request.json()
-    csrftoken_cache = data.get("csrfToken")
-    cookie_cache = data.get("cookie")
+    csrf_token = data.get("csrfToken", "")
+    cookie = data.get("cookie", "")
+    set_redis_key("csrfToken", csrf_token)
+    set_redis_key("cookie", cookie)
+    print("收到X-Csrf-Token:", csrf_token)
+    print("收到Cookie:", cookie)
     return {"status": "ok"}
-
 
 @router.get("/get_oa_XCsrfToken")
 async def get_XCsrfToken():
-    return {"csrfToken": csrftoken_cache, "cookie": cookie_cache}
-
+    return {
+        "csrfToken": get_redis_key("csrfToken"),
+        "cookie": get_redis_key("cookie")
+    }
 
 @router.post("/get_OA")
 async def get_OA(request: Request):

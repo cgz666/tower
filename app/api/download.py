@@ -3,6 +3,7 @@ from fastapi import APIRouter, Query
 from fastapi.responses import FileResponse
 import datetime
 import shutil
+import os
 from core.config import settings
 from core.sql import sql_orm
 
@@ -16,9 +17,9 @@ async def fsu_hafhour():
     from scheduler.other_task import gen_fsu_static
 
     folder = settings.resolve_path('spider/down/fsu_hafhour')
-    path = f'{folder}/fsu每日离线统计.xlsx'
-    zip_filename = settings.resolve_path(
-        f"spider/down/temp_folder_one_day/{datetime.datetime.now().timestamp()}_FSU信息")
+    path = os.path.join(str(folder), 'fsu每日离线统计.xlsx')
+    zip_filename = str(settings.resolve_path(
+        f"spider/down/temp_folder_one_day/{datetime.datetime.now().timestamp()}_FSU信息"))
 
     try:
         gen_fsu_static(path)

@@ -23,7 +23,7 @@ class Temperature:
         self.formatted_time = datetime.now().strftime('%Y%m%d15')
         self.csv_path = settings.resolve_path(f'spider/down/comprehensive_query/环境温度/环境温度.csv')
         self.station_file = settings.resolve_path(f'spider/down/station/站址信息.xlsx')
-        self.archive_file = settings.resolve_path(f'updatenas/temperature/"{self.formatted_time}.xlsx')
+        self.archive_file = settings.resolve_path(f'updatenas/temperature/{self.formatted_time}.xlsx')
 
     def down(self):
         """下载温度数据"""
@@ -52,10 +52,13 @@ class Temperature:
             sql, Base = temp
             sql.query(Base.classes.temperature).delete()
             for _, row in df_db.iterrows():
-                sql.add(Base.classes.temperature(**row.to_dict()))
+                row_dict = row.to_dict()
+                # 将 nan 转换为 None
+                row_dict = {k: None if pd.isna(v) else v for k, v in row_dict.items()}
+                sql.add(Base.classes.temperature(**row_dict))
             sql.commit()
 
-        return df_db  # 返回数据供后续使用
+        return df_db
 
     def archive(self, df):
         """添加机房类型列并保存存档"""
@@ -64,7 +67,7 @@ class Temperature:
 
         # 找到关键列
         station_id_col = [c for c in station_df.columns if '运维ID' in c][0]
-        station_name_col = [c for c in station_df.columns if '站址名称' in c][0]
+        station_name_col = [c for c in station_df.columns if '名称' in c][0]
         room_type_col = [c for c in station_df.columns if '机房类型' in c][0]
 
         # 创建匹配键映射
@@ -73,15 +76,14 @@ class Temperature:
 
         # 匹配机房类型
         df['key'] = df['站址运维ID'].str.strip() + "|" + df['站址'].str.strip()
-        df.insert(17, '机房类型', df['key'].map(room_type_col))
+        df.insert(17, '机房类型', df['key'].map(room_map))  # ← 改成 room_map
         df.drop('key', axis=1, inplace=True)
 
         # 保存存档
-        os.makedirs(os.path.dirname(self.archive_file), exist_ok=True)
         df.to_excel(self.archive_file, index=False)
 
     def main(self):
-        self.down()
+        # self.down()
         df = self.df_process()
         self.archive(df)
 

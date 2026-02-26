@@ -286,6 +286,7 @@ class Station():
             df['city'] = df['city'].str.replace('市', '')
             df['city'] = df['city'].str.replace('分公司', '')
             df = df.drop_duplicates(subset=['site_maitan_code'], keep='last')
+
             return df
 
         orm = sql_orm()
@@ -306,8 +307,8 @@ class Station():
         # 保存为文件xlsx/csv
         merge = pd.concat(df_list)
         merge.to_excel(self.output_path, index=False)
-        merge.to_csv(self.output_path.replace('xlsx', 'csv'), index=False, encoding='utf-8-sig')
-
+        csv_path = str(self.output_path).replace('.xlsx', '.csv')
+        merge.to_csv(csv_path, index=False, encoding='utf-8-sig')
     def main(self):
         self.down()
         if len(os.listdir(self.folder_temp)) >= 14:
@@ -1287,6 +1288,8 @@ class BatteryLevel():
 
 
 if __name__ == '__main__':
-    # FsuChaXun().main()
+    FsuChaXun().main()
     # FaultMonitoring().main()
-    AlarmNow4AByCity().main()
+    # AlarmNow4AByCity().main()
+    # StationLiangYi().main()
+    # StationDC().main()

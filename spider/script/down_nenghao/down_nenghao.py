@@ -17,7 +17,7 @@ def down_equiment_consitution():
         session,Base=temp
         pojo=Base.classes.foura
         res=session.query(pojo).first()
-        headers['Cookie']=res.Cookie
+        headers['Cookie']=res.cookies
     res=requests_get(url=url,headers=headers)
     if len(res.content) < 3000: raise ValueError("Content size is less than 3KB")
     with open(down_path, "wb") as codes:
@@ -39,7 +39,7 @@ def down_lixian():
         session,Base=temp
         pojo=Base.classes.foura
         res=session.query(pojo).first()
-        headers['Cookie']=res.Cookie
+        headers['Cookie']=res.cookies
     res=requests_get(url=url,headers=headers)
     if len(res.content) < 3000: raise ValueError("Content size is less than 3KB")
     with open(down_path, "wb") as codes:
@@ -53,6 +53,6 @@ def down_lixian():
     except Exception as e:
         pass
 
-
+#
 # down_equiment_consitution()
 # down_lixian()

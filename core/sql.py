@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.automap import automap_base
 from contextlib import contextmanager
 import threading
+import numpy as np
 import pandas as pd
 from core.config import settings
 
@@ -62,17 +63,26 @@ class sql_orm():
             return {"cookies":cookies, "cookies_str":cookies_str}
     def save_data(self,df,table):
         with self.session_scope() as (sql, Base):
-            pojo=getattr(Base.classes,table)
+            pojo = getattr(Base.classes, table)
             rows = []
             for index, row in df.iterrows():
-                temp = pojo(**row.to_dict())
-                rows.append(temp)
+                row_dict = {
+                    k: (None if isinstance(v, float) and np.isnan(v) else v)
+                    for k, v in row.to_dict().items()
+                }
+                rows.append(pojo(**row_dict))
             sql.bulk_save_objects(rows)
     def get_data(self,table):
         df = pd.read_sql_table(table, con=self.engine)
         return df
     def get_engine(self):
         return self.engine
+    def save_data_merge(self,df,table):
+        with self.session_scope() as (sql, Base):
+            pojo=getattr(Base.classes,table)
+            for index, row in df.iterrows():
+                temp = pojo(**row.to_dict())
+                sql.merge(temp)
     def save_data_with_delete(self, df, table):
         lock = threading.Lock()
         with lock:  # 使用线程锁

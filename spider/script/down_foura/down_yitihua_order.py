@@ -3,6 +3,7 @@ from core.sql import sql_orm
 import pythoncom
 import shutil
 import os
+import numpy as np
 import datetime
 import win32com.client as win32
 from bs4 import BeautifulSoup
@@ -414,7 +415,7 @@ class YiTiHuaOrder():
 
                 # 城市
                 d['queryForm:queryUnitId'] = city
-            path = f"{self.folder_temp}{self.city_dict[index]}{self.down_suffix}"
+            path = os.path.join(self.folder_temp, f"{self.city_dict[index]}{self.down_suffix}")
             self.down_post(self.URL, self.data, path)
     def down2(self):
         for key in ['1', '2']:
@@ -428,7 +429,7 @@ class YiTiHuaOrder():
             self.data2[key]['queryForm:endtimeInputDate'] = self.now.strftime('%Y-%m-%d %H:%M')
             self.data2[key]['queryForm:revertstarttimeInputDate'] = self.start.strftime('%Y-%m-%d %H:%M')
             self.data2[key]['queryForm:revertendtimeInputDate'] = self.now.strftime('%Y-%m-%d %H:%M')
-        path = f"{self.folder_temp}待故障确认{self.down_suffix}"
+        path = os.path.join(self.folder_temp, f"待故障确认{self.down_suffix}")
         self.down_post(self.URL, self.data2, path)
     def down_not_process(self):
         #下载非铁塔文件
@@ -446,7 +447,7 @@ class YiTiHuaOrder():
             self.data[key]['queryForm:endtimeInputDate'] = self.now.strftime( '%Y-%m-%d %H:%M')
             self.data[key]['queryForm:revertstarttimeInputDate'] = self.start.strftime( '%Y-%m-%d %H:%M')
             self.data[key]['queryForm:revertendtimeInputDate'] = self.now.strftime( '%Y-%m-%d %H:%M')
-        path = f"{self.folder_temp}全区运营商工单{self.down_suffix}"
+        path = os.path.join(self.folder_temp, f"全区运营商工单{self.down_suffix}")
         self.down_post(self.URL, self.data, path)
     def df_process(self):
         def save_sql(df):
@@ -455,13 +456,22 @@ class YiTiHuaOrder():
             for field in self.db_fields:
                 df_db[field] = df[field] if field in df.columns else None
             df_db = df_db[(df_db["故障单编码"].notna()) & (df_db["故障单编码"] != "")]
-            df_db = df_db.where(pd.notna(df_db), None)
+
             with sql_orm().session_scope() as temp:
                 sql, Base = temp
-                pojo = getattr(Base.classes,"一体化工单")
+                pojo = getattr(Base.classes, "一体化工单")
                 for index, row in df_db.iterrows():
-                    temp = pojo(**row.to_dict())
-                    sql.merge(temp)
+                    # 转为字典并清理所有 NaN
+                    row_dict = row.to_dict()
+                    clean_dict = {}
+                    for key, value in row_dict.items():
+                        if isinstance(value, float) and np.isnan(value):
+                            clean_dict[key] = None
+                        else:
+                            clean_dict[key] = value
+
+                    temp_obj = pojo(**clean_dict)
+                    sql.merge(temp_obj)
 
         df_list = []
         for file in os.listdir(self.folder_temp):
@@ -535,6 +545,6 @@ class YiTiHuaOrder():
 
 
 if __name__ == '__main__':
-# YiTiHuaOrder().temp()
-    for i in [0]:
-        YiTiHuaOrder(day=i).main()
+    YiTiHuaOrder().temp()
+#     for i in [0]:
+#         YiTiHuaOrder(day=i).main()

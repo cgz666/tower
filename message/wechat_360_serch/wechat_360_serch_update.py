@@ -4,6 +4,7 @@ import shutil
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 import pandas as pd
+from sqlalchemy import text
 from core.utils.excel_operate import xlsxtocsv
 from core.utils.retry_wrapper import requests_post
 from core.sql import sql_orm
@@ -121,7 +122,7 @@ class Wechat360SearchUpdate:
 
                 # 更新数据库
                 session.query(pojo).delete()
-                session.execute(r"ALTER TABLE wechat_data AUTO_INCREMENT = 1")
+                session.execute(text("ALTER TABLE wechat_data AUTO_INCREMENT = 1"))
                 for _, row in result.iterrows():
                     session.add(pojo(**row.to_dict()))
 
@@ -135,4 +136,4 @@ class Wechat360SearchUpdate:
             except Exception as e:
                 raise
 
-# Wechat360SearchUpdate().update()4
+# Wechat360SearchUpdate().update()

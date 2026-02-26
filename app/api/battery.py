@@ -5,10 +5,20 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import text
 import pandas as pd
 import datetime
+import json
 import tempfile
 from core.sql import sql_orm
 from core.config import settings
+import redis
+import pickle
 
+# 创建 Redis 连接
+redis_client = redis.Redis(
+    host='localhost',
+    port=6379,
+    password='123456',  # 添加密码
+    decode_responses=False
+)
 router = APIRouter(tags=["电池续航"])
 templates = Jinja2Templates(directory=settings.resolve_path("app/templates"))
 
@@ -95,8 +105,14 @@ async def battery_life(
         df_str = df.astype(str)
         data = df_str.iloc[start_index:end_index].to_dict('records')
 
-        # 存入 session（FastAPI 需要用其他方式，这里简化）
-        request.session['battery_life_data'] = df_str.to_dict('records')
+        # 使用 Redis 存储
+        session_id = request.session.get('session_id') or str(id(request))
+        request.session['session_id'] = session_id
+        redis_client.setex(
+            f"battery:{session_id}",
+            300,
+            pickle.dumps(df.to_dict('records'))
+        )
 
     if len(data) == 0:
         return "无数据"
@@ -122,8 +138,15 @@ async def battery_life_city(request: Request):
             text("select city as 市,count(*) as 站址数 from station where fsu_status='交维' group by city")).fetchall()
         station = pd.DataFrame([dict(row) for row in res])
 
-    # 从 session 获取数据（简化版，实际应该用 Redis 或数据库）
-    df = pd.DataFrame(request.session.get('battery_life_data', []))
+    # 从 Redis 获取数据
+    session_id = request.session.get('session_id')
+    data_bytes = redis_client.get(f"battery:{session_id}") if session_id else None
+
+    if data_bytes:
+        df = pd.DataFrame(pickle.loads(data_bytes))
+    else:
+        df = pd.DataFrame()  # 空数据
+
     df = df.loc[df['FSU状态'] == '交维']
     df['基站电池续航时长（小时）'] = pd.to_numeric(df['基站电池续航时长（小时）'], errors='coerce').fillna(0)
 
@@ -162,11 +185,14 @@ async def battery_life_city(request: Request):
 
 @router.get("/battery_life_download_excel")
 async def battery_life_download_excel(request: Request):
-    data = request.session.get('battery_life_data', [])
-    if not data:
-        return {"error": "无数据"}
+    session_id = request.session.get('session_id')
+    data_bytes = redis_client.get(f"battery:{session_id}") if session_id else None
 
-    df = pd.DataFrame(data)
+    if not data_bytes:
+        return {"error": "无数据或已过期"}
+
+    df = pd.DataFrame(pickle.loads(data_bytes))
+
     with tempfile.NamedTemporaryFile(suffix='.xlsx', delete=False) as temp:
         df.to_excel(temp.name, index=False)
         return FileResponse(temp.name, filename='蓄电池续航能力.xlsx')
