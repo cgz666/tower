@@ -724,7 +724,6 @@ class AlarmHistoryHbase():
         self.down_name = '历史告警'
         self.down_name_en = 'Hbase'
         self.down_suffix = '.xlsx'
-        # 改动19：统一使用settings.resolve_path解析路径
         self.folder_temp = settings.resolve_path(f'spider/down/{self.down_name_en}/temp')
         self.output_path = settings.resolve_path(f"spider/down/{self.down_name_en}/{self.down_name}.xlsx")
 
@@ -1217,7 +1216,7 @@ class FaultMonitoring():
 """
 class BatteryLevel():
     def __init__(self):
-        self.db_fields = ['站址', '设备', '信号量', '实测值', '时间', '备注']
+        self.db_fields = ['站址', '设备', '编号', '信号量', '实测值', '时间', '备注']
         self.station_list = [
             '南宁市金融大厦O', '南宁市幼师大厦O', '西乡塘区五菱桂花车辆有限公司',
             '西乡塘区相思湖西路监控杆', 'GX南宁越秀龙盘小区灯塔', '南宁市官桥村O',
@@ -1231,12 +1230,32 @@ class BatteryLevel():
             "开关电源": {
                 "0406136001": "移动租户电量",
                 "0406138001": "联通租户电量",
-                "0406140001": "电信租户电量"
+                "0406140001": "电信租户电量",
+                "0406161001": "包干型新业务租户电量",
+                "0406163001": "计量型新业务租户XX电量",
+                "0406167001": "配电单元XX电量",
+                "0406170001": "广电租户电量",
+                "0406172001": "行业外租户电量",
+                "0445109001": "包干型新业务租户电量",
+                "0445111001": "计量型新业务租户XX电量",
+                "0445113001": "移动租户电量（5G）",
+                "0445115001": "联通租户电量（5G）",
+                "0445117001": "电信租户电量（5G）"
             },
-            "分路计量设备": {
+            "分路计量": {
                 "0445102001": "移动租户电量",
                 "0445104001": "联通租户电量",
-                "0445106001": "电信租户电量"
+                "0445106001": "电信租户电量",
+                "0406161001": "包干型新业务租户电量",
+                "0406163001": "计量型新业务租户XX电量",
+                "0406167001": "配电单元XX电量",
+                "0406170001": "广电租户电量",
+                "0406172001": "行业外租户电量",
+                "0445109001": "包干型新业务租户电量",
+                "0445111001": "计量型新业务租户XX电量",
+                "0445113001": "移动租户电量（5G）",
+                "0445115001": "联通租户电量（5G）",
+                "0445117001": "电信租户电量（5G）"
             }
         }
 
@@ -1275,6 +1294,13 @@ class BatteryLevel():
     def df_process(self):
         df = pd.DataFrame(self.all_data)
         df = df.replace({np.nan: None})
+
+        # 新增：拆分设备字段
+        if '设备' in df.columns:
+            split_df = df['设备'].str.split('/', n=1, expand=True)
+            df['设备'] = split_df[0]  # 前一段
+            df['编号'] = split_df[1]  # 后一段
+
         with sql_orm().session_scope() as temp:
             sql, Base = temp
             pojo = Base.classes.battery_level
@@ -1287,9 +1313,12 @@ class BatteryLevel():
         self.df_process()
 
 
+
 if __name__ == '__main__':
-    FsuChaXun().main()
+    # FsuChaXun().main()
     # FaultMonitoring().main()
     # AlarmNow4AByCity().main()
     # StationLiangYi().main()
     # StationDC().main()
+    BatteryLevel().main()
+    # AlarmHistoryHbase().main()

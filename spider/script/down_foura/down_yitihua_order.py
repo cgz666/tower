@@ -545,6 +545,6 @@ class YiTiHuaOrder():
 
 
 if __name__ == '__main__':
-    YiTiHuaOrder().temp()
-#     for i in [0]:
-#         YiTiHuaOrder(day=i).main()
+    # YiTiHuaOrder().temp()
+    for i in [0]:
+        YiTiHuaOrder(day=i).main()

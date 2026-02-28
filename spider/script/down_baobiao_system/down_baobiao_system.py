@@ -20,7 +20,7 @@ class BaoBiaoSystem():
         with open(file_path, 'rb') as f:
             files = {'file': f}
             response = requests.post(url, files=files)
-            print(response)
+            print(response.text)
 
     def main(self):
         self.send_file()

@@ -4,6 +4,7 @@ import time
 import threading
 from datetime import datetime
 import random
+from core.utils.send_ding_msg import dingmsg
 from scheduler.task_logger import log_task_execution
 #################       爬虫          ################################################
 from spider.script.down_baobiao_system.down_baobiao_system import BaoBiaoSystem
@@ -24,7 +25,13 @@ def run_task_in_thread(task_func, task_name):
         try:
             log_task_execution(task_name, task_func)
         except Exception as e:
-            print(f"{task_name}: {e}")
+            print(f'{task_name}: {e}')
+            try:
+                msg = f'计划任务【{task_name}】报错：{e}'
+                dingmsg().text_at(dingmsg().BUG, msg, [18076339136], ['陈桂志'])
+            except:
+                pass
+
     thread = threading.Thread(target=wrapper, daemon=True)
     thread.start()
     return thread
@@ -64,7 +71,7 @@ def schedule_loop():
     schedule.every().day.at("00:00").do(run_task_in_thread,lambda: foura_spider_universal.StationAlias().main(), "站址别名更新")
 
     # 1:00
-    schedule.every().day.at("01:00").do(run_task_in_thread,lambda: (foura_spider_universal.Station().main(), foura_spider_universal.StationLiangYi().main()),"站址数据下载")
+    schedule.every().day.at("01:30").do(run_task_in_thread,lambda: (foura_spider_universal.Station().main(), foura_spider_universal.StationLiangYi().main()),"站址数据下载")
 
     # 3:00
     schedule.every().day.at("03:00").do(run_task_in_thread,lambda: (GetBattery().down(), GetKaiGuan().down(), GetLiBattery().down()),"电池开关锂电下载")
@@ -91,10 +98,10 @@ def schedule_loop():
     schedule.every().day.at("13:40").do(run_task_in_thread,lambda: foura_spider_universal.FsuChaXun().main(), "FSU查询(下午)")
 
     # 14:30
-    schedule.every().day.at("14:30").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), Temperature().main()), "温度采集")
+    schedule.every().day.at("14:30").do(run_task_in_thread,lambda: (time.sleep(random.uniform(5, 20)), Temperature().main()), "环境温度")
 
     # 16:00
-    schedule.every().day.at("16:00").do(run_task_in_thread,lambda: foura_spider_universal.StationDC().main(), "站址直流采集")
+    schedule.every().day.at("16:00").do(run_task_in_thread,lambda: foura_spider_universal.StationDC().main(), "基站负载电流")
 
     # 16:40
     schedule.every().day.at("16:40").do(run_task_in_thread,lambda: foura_spider_universal.FsuChaXun().main(), "FSU查询(傍晚)")
@@ -113,6 +120,10 @@ def schedule_loop():
 
     # 周一09:30
     schedule.every().monday.at("09:30").do(run_task_in_thread,lambda: SignalStrength().main(), "信号强度通报")
+
+    # 周三01:30
+    schedule.every().wednesday.at("01:30").do(run_task_in_thread,lambda: foura_spider_universal.FaultMonitoring().main(), "故障监控下载")
+
     while True:
         schedule.run_pending()
         time.sleep(1)

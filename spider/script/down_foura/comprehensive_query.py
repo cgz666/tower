@@ -7,7 +7,7 @@ import pythoncom
 import win32com.client as win32
 from datetime import datetime
 from core.config import settings
-from spider.script.down_foura.foura_spider_universal import Performence,PerformenceBySiteList
+from spider.script.down_foura.foura_spider_universal import Performence,PerformenceBySiteList,clear_folder
 
 """
 性能查询监控点-环境温度(0418101001)-每天15:00更新+存档
@@ -28,6 +28,7 @@ class Temperature:
     def down(self):
         """下载温度数据"""
         out_dir = settings.resolve_path('spider/down/comprehensive_query/环境温度')
+        clear_folder(os.path.join(out_dir,'temp'))
         Performence().main(
             self.cities,
             '0418101001',
@@ -83,7 +84,7 @@ class Temperature:
         df.to_excel(self.archive_file, index=False)
 
     def main(self):
-        # self.down()
+        self.down()
         df = self.df_process()
         self.archive(df)
 
@@ -108,6 +109,7 @@ class SignalStrength:
         self.output_path = os.path.join(self.out_dir,'output',self.output_name)
 
     def down(self):
+        clear_folder(os.path.join(self.out_dir,'temp'))
         """下载信号强度数据"""
         Performence().main(
             self.cities,
