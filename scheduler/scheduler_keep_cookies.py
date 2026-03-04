@@ -42,5 +42,5 @@ def schedule_loop():
 
 
 if __name__ == "__main__":
-    # KeepFourA().get_cookies(cookie_user=0)
+    KeepFourA().get_cookies(cookie_user=0)
     schedule_loop()

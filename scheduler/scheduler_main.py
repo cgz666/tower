@@ -10,7 +10,7 @@ from scheduler.task_logger import log_task_execution
 from spider.script.down_baobiao_system.down_baobiao_system import BaoBiaoSystem
 from spider.script.down_foura import down_yitihua_order,foura_spider_universal
 from spider.script.down_nenghao.down_nenghao import down_equiment_consitution,down_lixian as down_equiment_lixian
-from spider.script.down_foura.comprehensive_query import Temperature,SignalStrength,BatteryOrder
+from spider.script.down_foura.comprehensive_query import Temperature,SignalStrength,BatteryOrder,Test
 from message.ID_serch.down_file import GetBattery,GetLiBattery,GetKaiGuan
 from message.performance_sheet.script import PerformanceSheet
 ################        操作          #################################################
@@ -71,6 +71,9 @@ def schedule_loop():
     schedule.every().day.at("00:00").do(run_task_in_thread,lambda: foura_spider_universal.StationAlias().main(), "站址别名更新")
 
     # 1:00
+    schedule.every().day.at("01:00").do(run_task_in_thread,lambda: foura_spider_universal.FaultMonitoring().main(), "故障监控下载")
+
+    # 1:30
     schedule.every().day.at("01:30").do(run_task_in_thread,lambda: (foura_spider_universal.Station().main(), foura_spider_universal.StationLiangYi().main()),"站址数据下载")
 
     # 3:00
@@ -121,8 +124,7 @@ def schedule_loop():
     # 周一09:30
     schedule.every().monday.at("09:30").do(run_task_in_thread,lambda: SignalStrength().main(), "信号强度通报")
 
-    # 周三01:30
-    schedule.every().wednesday.at("01:30").do(run_task_in_thread,lambda: foura_spider_universal.FaultMonitoring().main(), "故障监控下载")
+
 
     while True:
         schedule.run_pending()

@@ -7,7 +7,7 @@ import pythoncom
 import win32com.client as win32
 from datetime import datetime
 from core.config import settings
-from spider.script.down_foura.foura_spider_universal import Performence,PerformenceBySiteList,clear_folder
+from spider.script.down_foura.foura_spider_universal import Performence,PerformenceBySiteList,clear_folder,log_downtime
 
 """
 性能查询监控点-环境温度(0418101001)-每天15:00更新+存档
@@ -231,6 +231,7 @@ class SignalStrength:
     def main(self):
         self.down()
         self.archive()
+        log_downtime(self.down_name_en)
 
 """
 爬取性能查询-直流负载电流(0406112001)+均充电压设定值(0406143001)+直流负载电流(0406112001)+
@@ -242,29 +243,29 @@ class BatteryOrder:
         self.cities = ['0099977', '0099978', '0099979', '0099980', '0099981', '0099982',
                        '0099983', '0099984', '0099985', '0099986', '0099987', '0099988',
                        '0099989', '0099990']
-        self.out_dir1 = settings.resolve_path('spider/down/comprehensive_query/均充电压设定值')
-        self.out_dir2 = settings.resolve_path('spider/down/comprehensive_query/浮充电压设定值')
-        self.out_dir3 = settings.resolve_path('spider/down/comprehensive_query/一级低压脱离设定值')
-        self.out_dir4 = settings.resolve_path('spider/down/comprehensive_query/二级低压脱离设定值')
-        self.out_dir5 = settings.resolve_path('spider/down/comprehensive_query/直流负载电流')
         self.down_name_en = "battery_order"
-        self.file_name1 = '均充电压设定值.xlsx'
-        self.file_name2 = '浮充电压设定值.xlsx'
-        self.file_name3 = '一级低压脱离设定值.xlsx'
-        self.file_name4 = '二级低压脱离设定值.xlsx'
-        self.file_path1 = os.path.join(self.out_dir1, self.file_name1)
-        self.file_path2 = os.path.join(self.out_dir2, self.file_name2)
-        self.file_path3 = os.path.join(self.out_dir3, self.file_name3)
-        self.file_path4 = os.path.join(self.out_dir4, self.file_name4)
-        self.output_name = settings.resolve_path('spider/down/battery__order', 'output', '开关电源电压设置修改情况通报-结果.xlsx')
-        self.model_path = settings.resolve_path('spider/down/battery__order', '模板.xlsx')
+        self.out_dir = settings.resolve_path('message/ID_serch/xls')
+        self.out_dir1 = os.path.join(self.out_dir, '均充电压设定值')
+        self.out_dir2 = os.path.join(self.out_dir, '浮充电压设定值')
+        self.out_dir3 = os.path.join(self.out_dir, '一级低压脱离设定值')
+        self.out_dir4 = os.path.join(self.out_dir, '二级低压脱离设定值')
+        self.out_dir5 = os.path.join(self.out_dir, '直流负载电流')
+        self.file_path1 = os.path.join(self.out_dir, '均充电压设定值.xlsx')
+        self.file_path2 = os.path.join(self.out_dir, '浮充电压设定值.xlsx')
+        self.file_path3 = os.path.join(self.out_dir, '一级低压脱离设定值.xlsx')
+        self.file_path4 = os.path.join(self.out_dir, '二级低压脱离设定值.xlsx')
+        self.file_path5 = os.path.join(self.out_dir, '直流负载电流.xlsx')
+        self.output_name = str(settings.resolve_path('spider/down/comprehensive_query/开关电源电压/output/开关电源电压设置修改情况通报-结果.xlsx'))
+        self.model_path = str(settings.resolve_path('spider/down/comprehensive_query/开关电源电压/模板.xlsx'))
     def down(self):
+        for path in [self.out_dir1, self.out_dir2, self.out_dir3, self.out_dir4, self.out_dir5]:
+            clear_folder(path)
         """下载信号强度数据"""
-        Performence().main(self.cities, '0406143001', os.path.join(self.out_dir1, 'temp'),f'{self.out_dir1}/均充电压设定值.xlsx', csv=True)
-        Performence().main(self.cities, '0406144001', os.path.join(self.out_dir2, 'temp'),f'{self.out_dir2}/浮充电压设定值.xlsx', csv=True)
-        Performence().main(self.cities, '0406146001', os.path.join(self.out_dir3, 'temp'),f'{self.out_dir3}/一级低压脱离设定值.xlsx', csv=True)
-        Performence().main(self.cities, '0406147001', os.path.join(self.out_dir4, 'temp'),f'{self.out_dir4}/二级低压脱离设定值.xlsx', csv=True)
-        Performence().main(self.cities, '0406112001', os.path.join(self.out_dir5, 'temp'),f'{self.out_dir5}/直流负载电流.xlsx', csv=True)
+        Performence().main(self.cities, '0406143001', self.out_dir1,self.file_path1, csv=True)
+        Performence().main(self.cities, '0406144001', self.out_dir2,self.file_path2, csv=True)
+        Performence().main(self.cities, '0406146001', self.out_dir3,self.file_path3, csv=True)
+        Performence().main(self.cities, '0406147001', self.out_dir4,self.file_path4, csv=True)
+        Performence().main(self.cities, '0406112001', self.out_dir5,self.file_path5, csv=True)
     def excel_process(self):
         """
         处理Excel文件，将指定文件夹中的数据文件内容复制到主表文件中。
@@ -276,7 +277,6 @@ class BatteryOrder:
         # 初始化 COM 库
         pythoncom.CoInitialize()
         try:
-            # xl = win32.Dispatch('Excel.Application')
             xl = win32.gencache.EnsureDispatch('Excel.Application')  # 开启excel软件
             xl.Visible = False
             xl.DisplayAlerts = False  # 禁用警告提示
@@ -432,14 +432,31 @@ class BatteryOrder:
 
     def main(self):
         self.down()
+        self.excel_process()
+        log_downtime(self.down_name_en)
+
+class Test:
+    def __init__(self):
+        self.cities = ['0099977']
+        self.csv_path = settings.resolve_path(f'spider/down/comprehensive_query/环境温度/环境温度.csv')
+
+    def down(self):
+        """下载温度数据"""
+        out_dir = settings.resolve_path('spider/down/comprehensive_query/环境温度')
+        clear_folder(os.path.join(out_dir,'temp'))
+        Performence().main(
+            self.cities,
+            '0418101001',
+            os.path.join(out_dir, 'temp'),
+            f"{out_dir}/环境温度.xlsx",
+            csv=True
+        )
+
+    def main(self):
+        self.down()
 
 if __name__ == '__main__':
     Temperature().main()
-    # Signal_strength().main()
-    # AC_input().down()
-    # AC_input_plus().down()
-    # battery().down()
-    # BatteryOrder().down()
-    # direct_current().down()
-    # Rectifier_module().down()
-    # temp().down()
+    # SignalStrength().main()
+    # BatteryOrder().main()
+    # Test().main()

@@ -46,7 +46,7 @@ def retry(max_attempts=1, delay=2):
 
     return decorator_retry
 @retry()
-def requests_post(url, headers={}, data={}, cookies={}, timeout=300):
+def requests_post(url, headers={}, data={}, cookies={}, timeout=600):
     """
     发送POST请求，带有重试机制。
 
@@ -139,7 +139,7 @@ def log_downtime(fuc_name):
         pojo = Base.classes.update_downhour_log
         res = session.query(pojo).filter(pojo.type == fuc_name).first()
         res.time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-def down_file(url, data, path, conten_len_error=3000, xlsx_juge=False, cookie_user=1):
+def down_file(url, data, path, conten_len_error=30, xlsx_juge=False, cookie_user=1):
     """
     下载文件，支持重试机制和文件验证。
 
@@ -783,12 +783,10 @@ class Performence():
         self.data = foura_data.performence
         self.URL = 'http://omms.chinatowercom.cn:9000/business/resMge/pwMge/performanceMge/perfdata.xhtml'
 
-    def main(self, cities, search_id, folder_temp, out_put, hours=24, content_len=102400, cookie_user=1, csv=False):
+    def main(self, cities, search_id, folder_temp, out_put, hours=24, content_len=3000, cookie_user=1, csv=False):
         def down_by_city(city):
             for key in ['1', '2']:
-                # 当前时间
                 now = datetime.now()
-                # 一天前的时间
                 start_time = now - timedelta(hours=int(hours))
 
                 # 格式时间化
@@ -805,7 +803,6 @@ class Performence():
                 self.data[key]['queryForm:querySpeIdShow'] = search_id + "..."
                 self.data[key]['queryForm:unitHidden2'] = city
 
-            # 此处path拼接已用os.path.join，无需修改
             path = os.path.join(folder_temp, f"{city}_{search_id}.xlsx")
             down_file(self.URL, self.data, path, xlsx_juge=True, conten_len_error=int(content_len),
                       cookie_user=int(cookie_user))
@@ -885,7 +882,7 @@ class SerchPerformence():
         self.data['2']['queryForm:querySpeIdShow'] = f'{serch_id}...'
         try:
             res = requests_post(self.URL, headers=self.headers, cookies=cookies)
-            html = BeautifulSoup(res.text, 'html.parser', from_encoding='utf-8')
+            html = BeautifulSoup(res.text, 'html.parser')
             javax = html.find('input', id='javax.faces.ViewState')['value']
             into_data = self.data['2']
             into_data['javax.faces.ViewState'] = javax
@@ -901,7 +898,7 @@ class SerchPerformence():
             into_data['queryForm:endtimeInputCurrentDate'] = now.strftime('%m/%Y')
 
             res = requests_post(self.URL, headers=self.headers, data=into_data, cookies=cookies)
-            html = BeautifulSoup(res.text, 'html.parser', from_encoding='utf-8')
+            html = BeautifulSoup(res.text, 'html.parser')
             tbody = html.find('tbody', id='listForm:list:tb')
             tr = tbody.find_all('tr')
             for tr_item in tr:
@@ -1295,15 +1292,14 @@ class BatteryLevel():
         df = pd.DataFrame(self.all_data)
         df = df.replace({np.nan: None})
 
-        # 新增：拆分设备字段
         if '设备' in df.columns:
-            split_df = df['设备'].str.split('/', n=1, expand=True)
+            split_df = df['设备'].str.rsplit('/', n=1, expand=True)
             df['设备'] = split_df[0]  # 前一段
             df['编号'] = split_df[1]  # 后一段
 
         with sql_orm().session_scope() as temp:
             sql, Base = temp
-            pojo = Base.classes.battery_level
+            pojo = Base.classes.电量信号量
             for _, row in df.iterrows():
                 sql.add(pojo(**row.to_dict()))
             sql.commit()
@@ -1313,12 +1309,11 @@ class BatteryLevel():
         self.df_process()
 
 
-
 if __name__ == '__main__':
     # FsuChaXun().main()
-    # FaultMonitoring().main()
+    FaultMonitoring().main()
     # AlarmNow4AByCity().main()
     # StationLiangYi().main()
     # StationDC().main()
-    BatteryLevel().main()
+    # BatteryLevel().main()
     # AlarmHistoryHbase().main()

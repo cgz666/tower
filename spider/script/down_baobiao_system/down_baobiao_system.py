@@ -9,7 +9,7 @@ class BaoBiaoSystem():
     def send_file(self):
         self.down_name_en = 'baobiao_system'
         file_path = settings.resolve_path("updatenas/fsu_lixian_qingkuang/FSU离线情况明细_日.xlsx")
-        url = 'http://clound.gxtower.cn:3980/tt/fsu_lixian_qingkuang'
+        url = 'http://clound.gxtower.cn:3980/tt/tower/msg_freq_overtime_fsu_offline'
 
         # 1. 检查文件修改日期
         file_mtime = datetime.date.fromtimestamp(os.path.getmtime(file_path))

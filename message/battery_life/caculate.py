@@ -38,14 +38,14 @@ class BatteryLifeCaculate():
         df = df[df['直流电压'].astype(float) >= 53]
 
         with sql_orm().session_scope() as (sql, Base):
-            pojo = Base.classes.voltage
+            pojo = Base.classes.battery_voltage
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'],
                                                          pojo.caculate_type == row['类型']).first()
                 if (existing_record is None) or (row['续航'] >= existing_record.battery_life) or (
                         (datetime.datetime.now() - existing_record.outage_time).total_seconds() >= 15768000) or (
                         existing_record.battery_life > 10):
-                    self.init_pojo('voltage', id=row['站址运维ID'], outage_time=row['告警发生时间'],
+                    self.init_pojo('battery_voltage', id=row['站址运维ID'], outage_time=row['告警发生时间'],
                                    caculate_type=row['类型'], voltage=row['直流电压'],
                                    voltage_get_time=datetime.datetime.now(), battery_life=row['续航'])
 
@@ -64,14 +64,14 @@ class BatteryLifeCaculate():
         df = df[df['续航'] >= 0]
 
         with sql_orm().session_scope() as (sql, Base):
-            pojo = Base.classes.zhiliu_voltage
+            pojo = Base.classes.battery_zhiliu_voltage
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'],
                                                          pojo.caculate_type == row['类型']).first()
                 if (existing_record is None) or (row['续航'] >= existing_record.battery_life) or (
                         (datetime.datetime.now() - existing_record.outage_time).total_seconds() >= 15768000) or (
                         existing_record.battery_life > 10):
-                    self.init_pojo('zhiliu_voltage', id=row['站址运维ID'], outage_time=row['告警发生时间_df1'],
+                    self.init_pojo('battery_zhiliu_voltage', id=row['站址运维ID'], outage_time=row['告警发生时间_df1'],
                                    caculate_type=row['类型'], zhiliu_voltage_time=row['告警发生时间_df2'],
                                    battery_life=row['续航'])
 
@@ -103,14 +103,14 @@ class BatteryLifeCaculate():
         df = df[df['续航'] >= 0]
 
         with sql_orm().session_scope() as (sql, Base):
-            pojo = Base.classes.offline
+            pojo = Base.classes.battery_offline
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'],
                                                          pojo.caculate_type == row['类型']).first()
                 if (existing_record is None) or (row['续航'] > existing_record.battery_life) or (
                         (datetime.datetime.now() - existing_record.offline_time).total_seconds() >= 15768000) or (
                         existing_record.battery_life > 10):
-                    self.init_pojo('offline', id=row['站址运维ID'], outage_time=row['告警发生时间'],
+                    self.init_pojo('battery_offline', id=row['站址运维ID'], outage_time=row['告警发生时间'],
                                    caculate_type=row['类型'], offline_alarm_name=row['退服告警名称'],
                                    offline_time=row['退服时间'], battery_life=row['续航'])
 
@@ -160,14 +160,14 @@ class BatteryLifeCaculate():
         df = df[df['续航'] >= 0]
 
         with sql_orm().session_scope() as (sql, Base):
-            pojo = Base.classes.order
+            pojo = Base.classes.battery_order
             for _, row in df.iterrows():
                 existing_record = sql.query(pojo).filter(pojo.id == row['站址运维ID'],
                                                          pojo.caculate_type == row['类型']).first()
                 if (existing_record is None) or (row['续航'] > existing_record.battery_life) or (
                         (datetime.datetime.now() - existing_record.order_time).total_seconds() >= 15768000) or (
                         existing_record.battery_life > 10):
-                    self.init_pojo('order', id=row['站址运维ID'], outage_time=row['告警发生时间'],
+                    self.init_pojo('battery_order', id=row['站址运维ID'], outage_time=row['告警发生时间'],
                                    caculate_type=row['类型'], order_id=row['order_id'], order_time=row['order_time'],
                                    battery_life=row['续航'])
 
@@ -177,7 +177,7 @@ class BatteryLifeCaculate():
             with sql_orm().session_scope() as (sql, Base):
                 result = sql.execute(text(sql_script))  # 这里已经正确使用了 text()
                 df = pd.DataFrame(result.fetchall(), columns=result.keys()).fillna('')
-                sql_orm().save_data_with_delete(df, 'result')
+                sql_orm().save_data_with_delete(df, 'battery_result')
                 data = df.to_json(orient='records')
                 headers = {'Content-Type': 'application/json'}
                 response = requests.post('http://clound.gxtower.cn:3980/tt/wechat_battery_life_save_data', data=data,
@@ -248,8 +248,8 @@ class BatteryLifeCaculate():
 
 
 if __name__ == '__main__':
-    # BatteryLifeCaculate().generate_result()
-    # BatteryLifeCaculate().calculate_zhiliu_voltage()
+    BatteryLifeCaculate().generate_result()
+    BatteryLifeCaculate().calculate_zhiliu_voltage()
     # BatteryLifeCaculate().calculate_voltage()
-    BatteryLifeCaculate().calculate_offline()
+    # BatteryLifeCaculate().calculate_offline()
     # BatteryLifeCaculate().generate_result_shangdan()

@@ -33,6 +33,16 @@ class sql_orm():
                 temp = pojo(**row.to_dict())
                 rows.append(temp)
             sql.bulk_save_objects(rows)
+
+    def excute_sql(self,sql_str,return_df=False):
+        with self.session_scope() as (sql, Base):
+            res=sql.execute(text(sql_str))
+            if return_df:
+                colnames = [column[0] for column in res.cursor.description]
+                rows = res.fetchall()
+                data_list = [dict(zip(colnames, row)) for row in rows]
+                df = pd.DataFrame(data_list)
+                return df
     def truncate_add_data(self, df, table):
         lock = threading.Lock()
         with lock:  # 使用线程锁

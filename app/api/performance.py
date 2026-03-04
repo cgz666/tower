@@ -60,4 +60,5 @@ async def download(hour: str):
     if not real or not os.path.isfile(real):
         return {"error": "File not found"}
 
-    return FileResponse(real, filename=f"{hour}_performance.xlsx")
+    original_filename = os.path.basename(real)
+    return FileResponse(real, filename=original_filename)

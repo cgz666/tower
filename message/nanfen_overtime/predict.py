@@ -15,7 +15,7 @@ class predict():
     def send_alarm_msg(self, df, msg_type, send_list=None):
         """统一处理告警消息发送"""
         sqlsession, Base = self.temp
-        pojo_phone = Base.classes.phone_predict
+        pojo_phone = Base.classes.predict_phone
         jkzx_phone = sqlsession.query(pojo_phone).filter(pojo_phone.name == '南宁市监控中心').first().phone
 
         if msg_type == 'highlevel_jiaoliu':

@@ -31,7 +31,7 @@ class predict_dc():
         with sql_orm().session_scope() as temp:
             sqlsession,Base=temp
             # 生成文本
-            pojo_phone = Base.classes.phone_predict# 钉钉电话
+            pojo_phone = Base.classes.predict_phone# 钉钉电话
             res = sqlsession.query(pojo_phone).filter(pojo_phone.name == '南宁市监控中心').first()
             jkzx_phone=res.phone
             area_list=[]

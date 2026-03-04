@@ -33,7 +33,7 @@ async def battery_life(
 
     with sql_orm().session_scope() as (sql, Base):
         # 主查询
-        sql_str = 'select * from result'
+        sql_str = 'select * from battery_result'
         result = sql.execute(text(sql_str))
         df = pd.DataFrame(result.fetchall(), columns=result.keys())
         df = df.reset_index(drop=True)
@@ -213,7 +213,7 @@ async def get_battery():
     try:
         with sql_orm().session_scope() as temp:
             sql, Base = temp
-            sql_str = text("select * from result")
+            sql_str = text("select * from battery_result")
             res = sql.execute(sql_str)
             colnames = [column[0] for column in res.cursor.description]
             rows = res.fetchall()
